@@ -1,0 +1,139 @@
+---
+title: "Tarea 4 - Mineria de Datos e Inteligencia de Negocios"
+author: "Jonathan Gonzalez, Gonzalo Rodriguez, Juan P. Villalobos"
+date: "05/17/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#instalar librerias
+
+#install.packages(tibble)
+#install.packages(stringr)
+#install.packages(rves)
+#install.packages(FactoMineR)
+#install.packages(ggplot2)
+
+# cargar librerias necesarias
+suppressWarnings(suppressMessages(library(tibble)))
+suppressWarnings(suppressMessages(library(stringr)))
+suppressWarnings(suppressMessages(library(rvest)))
+suppressWarnings(suppressMessages(library(FactoMineR)))
+suppressWarnings(suppressMessages(library(ggplot2)))
+```
+# Modelo CRISP-DM
+
+## Objetivos
+
+### Negocio
+* Ejercicio Académico
+
+### Minería de Datos
+* Desarrollar un modelo utilizando reglas de clustering.
+
+* Aplicar parcialmente la metodología CRISP-DM para resolver un caso básico de minería de datos.
+
+* Extraer datos de una página web para ser analizados posteriormente.
+
+* Aplicar expresiones regulares para procesar datos textuales.
+
+* Aplicar un algoritmo de clustering a los datos extraídos.
+
+### Criterio de éxito
+
+* Aplicar los coceptos vistos en clase correctamente.
+
+### Entendimiento de los datos
+
+* ***Exploración de los datos: busque en Internet una página web con datos que sean de su interés. Los datos deben ser parte de lo que la página presenta, es decir, deben ser tablas, párrafos, etc. visibles al cargar la página.***
+
+>Se ha decidido utilizar los datos de jugadores mas valiosos de la NBA (MVPs):
+>[https://www.basketball-reference.com/awards/mvp.html](https://www.basketball-reference.com/awards/mvp.html)
+
+```{r}
+## exploracion de datos
+# Buscar informacion de wiki tambien, la pagina de la NBA esta muy limpia
+# https://en.wikipedia.org/wiki/NBA_Most_Valuable_Player_Award
+
+
+#leer los datos en formato html desde la pagina web
+pageURL<-'https://www.basketball-reference.com/awards/mvp.html'
+pageHTML<- read_html(pageURL,encoding = 'UTF-8')  
+  
+#extraer las tablas del codigo html
+pageTables<- html_table(pageHTML,fill=TRUE)
+
+length(pageTables)
+#pageTables
+```
+
+```{r}
+#agregar y almacenar las tablas de ganadores MVP de la NBA
+NBAWinners<- rbind(pageTables[[1]], pageTables[[2]])
+NBAWinners
+#almacenar las tablas de ganadores MVP de la ABA
+ABAWinners<- pageTables[[3]]
+ABAWinners
+```
+
+### Preparación de los datos
+
+* ***Seleccione los datos de su interés en la página previamente identificada.***
+```{r}
+# seleccionar datos
+```
+
+* ***Limpieza de los datos: limpie lo que sea necesario aplicando expresiones regulares.***
+```{r}
+# limpiar datos
+```
+
+* ***Construcción de nuevos datos (atributos). Si no aplica, indíquelo. Si construye nuevas columnas o atributos, explique.***
+```{r}
+# construir nuevos datos
+```
+
+* ***Transformaciones aplicadas a los datos. Describa las transformaciones realizadas.***
+```{r}
+# transformar datos
+
+
+# formar un DataFrame
+```
+
+### Fase de modelado
+
+***Para esta fase se le solicita que seleccione dos de los algoritmos de clustering vistos en clase, o bien ejecutar dos veces sólo uno de los algoritmos estudiados pero usando diferentes parámetros cada vez.***
+
+* ***Selecccion de técnicas***
+```{r}
+# seleccion de tecnicas
+```  
+* ***Construcción de cada modelo***
+    * ***Selección de los parametros***   
+    ```{r}
+    # seleccion de los parametros
+    ```  
+    * ***Ejecución***  
+    ```{r}
+    # ejecucion
+    ```  
+    * ***Descripción del modelo obtenido (incluya al menos un gráfico por modelo)***
+    ```{r}
+    # modelo obtenido
+
+    # grafico modelo #1
+
+    # grafico modelo #2
+    ```  
+* ***Evaluación de los modelos***
+    * ***Compare los resultados obtenidos con cada modelo***  
+    ```{r}
+    # evaluacion modelo #1
+
+    # evaluacion modelo #2
+    ```
