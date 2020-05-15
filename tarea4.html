@@ -382,15 +382,19 @@ $(document).ready(function () {
 </div>
 
 
-<div id="modelo-crisp-dm" class="section level1">
-<h1>Modelo CRISP-DM</h1>
+<div id="clustering" class="section level1">
+<h1>Clustering</h1>
+<hr />
 <div id="objetivos" class="section level2">
 <h2>Objetivos</h2>
 <div id="negocio" class="section level3">
 <h3>Negocio</h3>
 <ul>
-<li>Ejercicio Académico</li>
+<li>Ejercicio Académico.</li>
 </ul>
+<blockquote>
+<p>Construir clusters de los jugadores mas valiosos de la NBA segun su porcentaje de efectividad en tiros.</p>
+</blockquote>
 </div>
 <div id="mineria-de-datos" class="section level3">
 <h3>Minería de Datos</h3>
@@ -413,325 +417,285 @@ $(document).ready(function () {
 <ul>
 <li><strong><em>Exploración de los datos: busque en Internet una página web con datos que sean de su interés. Los datos deben ser parte de lo que la página presenta, es decir, deben ser tablas, párrafos, etc. visibles al cargar la página.</em></strong></li>
 </ul>
-<blockquote>
-<p>Se ha decidido utilizar los datos de jugadores mas valiosos de la NBA (MVPs): <a href="https://www.basketball-reference.com/awards/mvp.html" class="uri">https://www.basketball-reference.com/awards/mvp.html</a></p>
-</blockquote>
-<pre class="r"><code>## exploracion de datos
-# Buscar informacion de wiki tambien, la pagina de la NBA esta muy limpia
-# https://en.wikipedia.org/wiki/NBA_Most_Valuable_Player_Award
-
-
-#leer los datos en formato html desde la pagina web
-pageURL&lt;-'https://www.basketball-reference.com/awards/mvp.html'
-pageHTML&lt;- read_html(pageURL,encoding = 'UTF-8')  
+<p>Se exploraran las siguientes dos paginas web para obtener la información correspondiendte:</p>
+<p>Lista de jugadores mas valiosos de la NBA (MVPs) segun la página oficial: <a href="https://www.basketball-reference.com/awards/mvp.html" class="uri">https://www.basketball-reference.com/awards/mvp.html</a></p>
+<p>Lista de jugadores mas valiosos de la NBA (MVPs) segun la página wikipedia: <a href="https://en.wikipedia.org/wiki/NBA_Most_Valuable_Player_Award" class="uri">https://en.wikipedia.org/wiki/NBA_Most_Valuable_Player_Award</a></p>
+</div>
+<div id="exploracion-de-datos" class="section level3">
+<h3>Exploracion de datos</h3>
+<pre class="r"><code>#leer los datos en formato html desde las paginas web, Wiki Basketball MVP
+NBA_MVP_pageURL&lt;-'https://www.basketball-reference.com/awards/mvp.html'
+Wiki_MVP_pageURL&lt;-'https://en.wikipedia.org/wiki/NBA_Most_Valuable_Player_Award'
+nba_pageHTML&lt;- read_html(NBA_MVP_pageURL,encoding = 'UTF-8')
+wiki_pageHTML&lt;- read_html(Wiki_MVP_pageURL,encoding = 'UTF-8')
   
 #extraer las tablas del codigo html
-pageTables&lt;- html_table(pageHTML,fill=TRUE)
-
-length(pageTables)</code></pre>
-<pre><code>## [1] 3</code></pre>
-<pre class="r"><code>#pageTables</code></pre>
-<pre class="r"><code>#agregar y almacenar las tablas de ganadores MVP de la NBA
-NBAWinners&lt;- rbind(pageTables[[1]], pageTables[[2]])
-NBAWinners</code></pre>
-<pre><code>##                                                        Per Game Per Game
-## 1   Season  Lg                Player Voting Age  Tm  G       MP      PTS
-## 2  2018-19 NBA Giannis Antetokounmpo    (V)  24 MIL 72     32.8     27.7
-## 3  2017-18 NBA          James Harden    (V)  28 HOU 72     35.4     30.4
-## 4  2016-17 NBA     Russell Westbrook    (V)  28 OKC 81     34.6     31.6
-## 5  2015-16 NBA         Stephen Curry    (V)  27 GSW 79     34.2     30.1
-## 6  2014-15 NBA         Stephen Curry    (V)  26 GSW 80     32.7     23.8
-## 7  2013-14 NBA          Kevin Durant    (V)  25 OKC 81     38.5     32.0
-## 8  2012-13 NBA          LeBron James    (V)  28 MIA 76     37.9     26.8
-## 9  2011-12 NBA          LeBron James    (V)  27 MIA 62     37.5     27.1
-## 10 2010-11 NBA          Derrick Rose    (V)  22 CHI 81     37.4     25.0
-## 11 2009-10 NBA          LeBron James    (V)  25 CLE 76     39.0     29.7
-## 12 2008-09 NBA          LeBron James    (V)  24 CLE 81     37.7     28.4
-## 13 2007-08 NBA           Kobe Bryant    (V)  29 LAL 82     38.9     28.3
-## 14 2006-07 NBA         Dirk Nowitzki    (V)  28 DAL 78     36.2     24.6
-## 15 2005-06 NBA            Steve Nash    (V)  31 PHO 79     35.4     18.8
-## 16 2004-05 NBA            Steve Nash    (V)  30 PHO 75     34.3     15.5
-## 17 2003-04 NBA         Kevin Garnett    (V)  27 MIN 82     39.4     24.2
-## 18 2002-03 NBA            Tim Duncan    (V)  26 SAS 81     39.3     23.3
-## 19 2001-02 NBA            Tim Duncan    (V)  25 SAS 82     40.6     25.5
-## 20 2000-01 NBA         Allen Iverson    (V)  25 PHI 71     42.0     31.1
-## 21 1999-00 NBA      Shaquille O'Neal    (V)  27 LAL 79     40.0     29.7
-## 22 1998-99 NBA           Karl Malone    (V)  35 UTA 49     37.4     23.8
-## 23 1997-98 NBA        Michael Jordan    (V)  34 CHI 82     38.8     28.7
-## 24 1996-97 NBA           Karl Malone    (V)  33 UTA 82     36.6     27.4
-## 25 1995-96 NBA        Michael Jordan    (V)  32 CHI 82     37.7     30.4
-## 26 1994-95 NBA        David Robinson    (V)  29 SAS 81     38.0     27.6
-## 27 1993-94 NBA       Hakeem Olajuwon    (V)  31 HOU 80     41.0     27.3
-## 28 1992-93 NBA       Charles Barkley    (V)  29 PHO 76     37.6     25.6
-## 29 1991-92 NBA        Michael Jordan    (V)  28 CHI 80     38.8     30.1
-## 30 1990-91 NBA        Michael Jordan    (V)  27 CHI 82     37.0     31.5
-## 31 1989-90 NBA         Magic Johnson    (V)  30 LAL 79     37.2     22.3
-## 32 1988-89 NBA         Magic Johnson    (V)  29 LAL 77     37.5     22.5
-## 33 1987-88 NBA        Michael Jordan    (V)  24 CHI 82     40.4     35.0
-## 34 1986-87 NBA         Magic Johnson    (V)  27 LAL 80     36.3     23.9
-## 35 1985-86 NBA            Larry Bird    (V)  29 BOS 82     38.0     25.8
-## 36 1984-85 NBA            Larry Bird    (V)  28 BOS 80     39.5     28.7
-## 37 1983-84 NBA            Larry Bird    (V)  27 BOS 79     38.3     24.2
-## 38 1982-83 NBA          Moses Malone    (V)  27 PHI 78     37.5     24.5
-## 39 1981-82 NBA          Moses Malone    (V)  26 HOU 81     42.0     31.1
-## 40 1980-81 NBA         Julius Erving    (V)  30 PHI 82     35.0     24.6
-## 41 1979-80 NBA   Kareem Abdul-Jabbar    (V)  32 LAL 82     38.3     24.8
-## 42 1978-79 NBA          Moses Malone    (V)  23 HOU 82     41.3     24.8
-## 43 1977-78 NBA           Bill Walton    (V)  25 POR 58     33.3     18.9
-## 44 1976-77 NBA   Kareem Abdul-Jabbar    (V)  29 LAL 82     36.8     26.2
-## 45 1975-76 NBA   Kareem Abdul-Jabbar    (V)  28 LAL 82     41.2     27.7
-## 46 1974-75 NBA            Bob McAdoo    (V)  23 BUF 82     43.2     34.5
-## 47 1973-74 NBA   Kareem Abdul-Jabbar    (V)  26 MIL 81     43.8     27.0
-## 48 1972-73 NBA           Dave Cowens    (V)  24 BOS 82     41.8     20.5
-## 49 1971-72 NBA   Kareem Abdul-Jabbar    (V)  24 MIL 81     44.2     34.8
-## 50 1970-71 NBA   Kareem Abdul-Jabbar    (V)  23 MIL 82     40.1     31.7
-## 51 1969-70 NBA           Willis Reed    (V)  27 NYK 81     38.1     21.7
-## 52 1968-69 NBA            Wes Unseld    (V)  22 BAL 82     36.2     13.8
-## 53 1967-68 NBA      Wilt Chamberlain    (V)  31 PHI 82     46.8     24.3
-## 54 1966-67 NBA      Wilt Chamberlain    (V)  30 PHI 81     45.5     24.1
-## 55 1965-66 NBA      Wilt Chamberlain    (V)  29 PHI 79     47.3     33.5
-## 56 1964-65 NBA          Bill Russell    (V)  30 BOS 78     44.4     14.1
-## 57 1963-64 NBA       Oscar Robertson    (V)  25 CIN 79     45.1     31.4
-## 58 1962-63 NBA          Bill Russell    (V)  28 BOS 78     44.9     16.8
-## 59 1961-62 NBA          Bill Russell    (V)  27 BOS 76     45.2     18.9
-## 60 1960-61 NBA          Bill Russell    (V)  26 BOS 78     44.3     16.9
-## 61 1959-60 NBA      Wilt Chamberlain    (V)  23 PHW 72     46.4     37.6
-## 62 1958-59 NBA            Bob Pettit    (V)  26 STL 72     39.9     29.2
-## 63 1957-58 NBA          Bill Russell    (V)  23 BOS 69     38.3     16.6
-## 64 1956-57 NBA             Bob Cousy    (V)  28 BOS 64     36.9     20.6
-## 65 1955-56 NBA            Bob Pettit    (V)  23 STL 72     38.8     25.7
-## 66  Season  Lg                Player Voting Age  Tm  G       MP      PTS
-## 67 1975-76 ABA         Julius Erving    (V)  25 NYA 84     38.6     29.3
-## 68 1974-75 ABA   Julius Erving (Tie)    (V)  24 NYA 84     40.5     27.9
-## 69 1974-75 ABA George McGinnis (Tie)    (V)  24 INA 79     40.4     29.8
-## 70 1973-74 ABA         Julius Erving    (V)  23 NYA 84     40.5     27.4
-## 71 1972-73 ABA      Billy Cunningham    (V)  29 CAR 84     38.7     24.1
-## 72 1971-72 ABA         Artis Gilmore    (V)  22 KEN 84     43.6     23.8
-## 73 1970-71 ABA           Mel Daniels    (V)  26 INA 82     38.7     21.0
-## 74 1969-70 ABA       Spencer Haywood    (V)  20 DNR 84     45.3     30.0
-## 75 1968-69 ABA           Mel Daniels    (V)  24 INA 76     38.6     24.0
-## 76 1967-68 ABA        Connie Hawkins    (V)  25 PTP 70     44.9     26.8
-##    Per Game Per Game Per Game Per Game Shooting Shooting Shooting Advanced
-## 1       TRB      AST      STL      BLK      FG%      3P%      FT%       WS
-## 2      12.5      5.9      1.3      1.5     .578     .256     .729     14.4
-## 3       5.4      8.8      1.8      0.7     .449     .367     .858     15.4
-## 4      10.7     10.4      1.6      0.4     .425     .343     .845     13.1
-## 5       5.4      6.7      2.1      0.2     .504     .454     .908     17.9
-## 6       4.3      7.7      2.0      0.2     .487     .443     .914     15.7
-## 7       7.4      5.5      1.3      0.7     .503     .391     .873     19.2
-## 8       8.0      7.3      1.7      0.9     .565     .406     .753     19.3
-## 9       7.9      6.2      1.9      0.8     .531     .362     .771     14.5
-## 10      4.1      7.7      1.0      0.6     .445     .332     .858     13.1
-## 11      7.3      8.6      1.6      1.0     .503     .333     .767     18.5
-## 12      7.6      7.2      1.7      1.1     .489     .344     .780     20.3
-## 13      6.3      5.4      1.8      0.5     .459     .361     .840     13.8
-## 14      8.9      3.4      0.7      0.8     .502     .416     .904     16.3
-## 15      4.2     10.5      0.8      0.2     .512     .439     .921     12.4
-## 16      3.3     11.5      1.0      0.1     .502     .431     .887     10.9
-## 17     13.9      5.0      1.5      2.2     .499     .256     .791     18.3
-## 18     12.9      3.9      0.7      2.9     .513     .273     .710     16.5
-## 19     12.7      3.7      0.7      2.5     .508     .100     .799     17.8
-## 20      3.8      4.6      2.5      0.3     .420     .320     .814     11.8
-## 21     13.6      3.8      0.5      3.0     .574     .000     .524     18.6
-## 22      9.4      4.1      1.3      0.6     .493     .000     .788      9.6
-## 23      5.8      3.5      1.7      0.5     .465     .238     .784     15.8
-## 24      9.9      4.5      1.4      0.6     .550     .000     .755     16.7
-## 25      6.6      4.3      2.2      0.5     .495     .427     .834     20.4
-## 26     10.8      2.9      1.7      3.2     .530     .300     .774     17.5
-## 27     11.9      3.6      1.6      3.7     .528     .421     .716     14.3
-## 28     12.2      5.1      1.6      1.0     .520     .305     .765     14.4
-## 29      6.4      6.1      2.3      0.9     .519     .270     .832     17.7
-## 30      6.0      5.5      2.7      1.0     .539     .312     .851     20.3
-## 31      6.6     11.5      1.7      0.4     .480     .384     .890     16.5
-## 32      7.9     12.8      1.8      0.3     .509     .314     .911     16.1
-## 33      5.5      5.9      3.2      1.6     .535     .132     .841     21.2
-## 34      6.3     12.2      1.7      0.5     .522     .205     .848     15.9
-## 35      9.8      6.8      2.0      0.6     .496     .423     .896     15.8
-## 36     10.5      6.6      1.6      1.2     .522     .427     .882     15.7
-## 37     10.1      6.6      1.8      0.9     .492     .247     .888     13.6
-## 38     15.3      1.3      1.1      2.0     .501     .000     .761     15.1
-## 39     14.7      1.8      0.9      1.5     .519     .000     .762     15.4
-## 40      8.0      4.4      2.1      1.8     .521     .222     .787     13.8
-## 41     10.8      4.5      1.0      3.4     .604     .000     .765     14.8
-## 42     17.6      1.8      1.0      1.5     .540              .739     14.1
-## 43     13.2      5.0      1.0      2.5     .522              .720      8.4
-## 44     13.3      3.9      1.2      3.2     .579              .701     17.8
-## 45     16.9      5.0      1.5      4.1     .529              .703     17.0
-## 46     14.1      2.2      1.1      2.1     .512              .805     17.8
-## 47     14.5      4.8      1.4      3.5     .539              .702     18.4
-## 48     16.2      4.1                       .452              .779     12.0
-## 49     16.6      4.6                       .574              .689     25.4
-## 50     16.0      3.3                       .577              .690     22.3
-## 51     13.9      2.0                       .507              .756     14.6
-## 52     18.2      2.6                       .476              .605     10.8
-## 53     23.8      8.6                       .595              .380     20.4
-## 54     24.2      7.8                       .683              .441     21.9
-## 55     24.6      5.2                       .540              .513     21.4
-## 56     24.1      5.3                       .438              .573     16.9
-## 57      9.9     11.0                       .483              .853     20.6
-## 58     23.6      4.5                       .432              .555     13.5
-## 59     23.6      4.5                       .457              .595     15.5
-## 60     23.9      3.4                       .426              .550     13.0
-## 61     27.0      2.3                       .461              .582     17.0
-## 62     16.4      3.1                       .438              .759     14.8
-## 63     22.7      2.9                       .442              .519     11.3
-## 64      4.8      7.5                       .378              .821      8.8
-## 65     16.2      2.6                       .429              .736     13.8
-## 66      TRB      AST      STL      BLK      FG%      3P%      FT%       WS
-## 67     11.0      5.0      2.5      1.9     .507     .330     .801     17.7
-## 68     10.9      5.5      2.2      1.9     .506     .333     .799     17.6
-## 69     14.3      6.3      2.6      0.7     .451     .354     .724     11.6
-## 70     10.7      5.2      2.3      2.4     .512     .395     .766     16.5
-## 71     12.0      6.3      2.6              .487     .286     .789     11.9
-## 72     17.8      2.7               5.0     .598              .646     19.8
-## 73     18.0      2.2                       .514     .077     .679     11.4
-## 74     19.5      2.3                       .493     .000     .776     17.1
-## 75     16.5      1.5                       .476     .000     .604      8.6
-## 76     13.5      4.6                       .519     .222     .764     17.9
-##    Advanced
-## 1     WS/48
-## 2      .292
-## 3      .289
-## 4      .224
-## 5      .318
-## 6      .288
-## 7      .295
-## 8      .322
-## 9      .298
-## 10     .208
-## 11     .299
-## 12     .318
-## 13     .208
-## 14     .278
-## 15     .212
-## 16     .203
-## 17     .272
-## 18     .248
-## 19     .257
-## 20     .190
-## 21     .283
-## 22     .252
-## 23     .238
-## 24     .268
-## 25     .317
-## 26     .273
-## 27     .210
-## 28     .242
-## 29     .274
-## 30     .321
-## 31     .270
-## 32     .267
-## 33     .308
-## 34     .263
-## 35     .244
-## 36     .238
-## 37     .215
-## 38     .248
-## 39     .218
-## 40     .231
-## 41     .227
-## 42     .200
-## 43     .209
-## 44     .283
-## 45     .242
-## 46     .242
-## 47     .250
-## 48     .168
-## 49     .340
-## 50     .326
-## 51     .227
-## 52     .175
-## 53     .255
-## 54     .285
-## 55     .275
-## 56     .234
-## 57     .278
-## 58     .185
-## 59     .217
-## 60     .181
-## 61     .245
-## 62     .246
-## 63     .206
-## 64     .178
-## 65     .236
-## 66    WS/48
-## 67     .262
-## 68     .248
-## 69     .174
-## 70     .233
-## 71     .176
-## 72     .259
-## 73     .173
-## 74     .216
-## 75     .140
-## 76     .273</code></pre>
-<pre class="r"><code>#almacenar las tablas de ganadores MVP de la ABA
-ABAWinners&lt;- pageTables[[3]]
-ABAWinners</code></pre>
-<pre><code>##                   Player  Lg Count
-## 1    Kareem Abdul-Jabbar NBA     6
-## 2         Michael Jordan NBA     5
-## 3           Bill Russell NBA     5
-## 4       Wilt Chamberlain NBA     4
-## 5           LeBron James NBA     4
-## 6             Larry Bird NBA     3
-## 7          Julius Erving ABA     3
-## 8          Magic Johnson NBA     3
-## 9           Moses Malone NBA     3
-## 10         Stephen Curry NBA     2
-## 11           Mel Daniels ABA     2
-## 12            Tim Duncan NBA     2
-## 13           Karl Malone NBA     2
-## 14            Steve Nash NBA     2
-## 15            Bob Pettit NBA     2
-## 16 Giannis Antetokounmpo NBA     1
-## 17       Charles Barkley NBA     1
-## 18           Kobe Bryant NBA     1
-## 19             Bob Cousy NBA     1
-## 20           Dave Cowens NBA     1
-## 21      Billy Cunningham ABA     1
-## 22          Kevin Durant NBA     1
-## 23         Julius Erving NBA     1
-## 24         Kevin Garnett NBA     1
-## 25         Artis Gilmore ABA     1
-## 26          James Harden NBA     1
-## 27        Connie Hawkins ABA     1
-## 28       Spencer Haywood ABA     1
-## 29         Allen Iverson NBA     1
-## 30            Bob McAdoo NBA     1
-## 31       George McGinnis ABA     1
-## 32         Dirk Nowitzki NBA     1
-## 33      Shaquille O'Neal NBA     1
-## 34       Hakeem Olajuwon NBA     1
-## 35           Willis Reed NBA     1
-## 36       Oscar Robertson NBA     1
-## 37        David Robinson NBA     1
-## 38          Derrick Rose NBA     1
-## 39            Wes Unseld NBA     1
-## 40           Bill Walton NBA     1
-## 41     Russell Westbrook NBA     1</code></pre>
+nba_pageTables&lt;- html_table(nba_pageHTML,fill=TRUE)
+wiki_pageTables&lt;- html_table(wiki_pageHTML,fill=TRUE)</code></pre>
+<div id="exploracion-de-los-datos-de-la-pagina-de-nba" class="section level4">
+<h4>Exploracion de los datos de la pagina de NBA</h4>
+<p>La pagina de NBA tiene: <code>3</code> tablas.<br />
+Los encabezados de las tablase de NBA son:</p>
+<pre class="r"><code>#mostrar los encabezados de cada tabla
+str(nba_pageTables)</code></pre>
+<pre><code>## List of 3
+##  $ :'data.frame':    65 obs. of  18 variables:
+##   ..$         : chr [1:65] &quot;Season&quot; &quot;2018-19&quot; &quot;2017-18&quot; &quot;2016-17&quot; ...
+##   ..$         : chr [1:65] &quot;Lg&quot; &quot;NBA&quot; &quot;NBA&quot; &quot;NBA&quot; ...
+##   ..$         : chr [1:65] &quot;Player&quot; &quot;Giannis Antetokounmpo&quot; &quot;James Harden&quot; &quot;Russell Westbrook&quot; ...
+##   ..$         : chr [1:65] &quot;Voting&quot; &quot;(V)&quot; &quot;(V)&quot; &quot;(V)&quot; ...
+##   ..$         : chr [1:65] &quot;Age&quot; &quot;24&quot; &quot;28&quot; &quot;28&quot; ...
+##   ..$         : chr [1:65] &quot;Tm&quot; &quot;MIL&quot; &quot;HOU&quot; &quot;OKC&quot; ...
+##   ..$         : chr [1:65] &quot;G&quot; &quot;72&quot; &quot;72&quot; &quot;81&quot; ...
+##   ..$ Per Game: chr [1:65] &quot;MP&quot; &quot;32.8&quot; &quot;35.4&quot; &quot;34.6&quot; ...
+##   ..$ Per Game: chr [1:65] &quot;PTS&quot; &quot;27.7&quot; &quot;30.4&quot; &quot;31.6&quot; ...
+##   ..$ Per Game: chr [1:65] &quot;TRB&quot; &quot;12.5&quot; &quot;5.4&quot; &quot;10.7&quot; ...
+##   ..$ Per Game: chr [1:65] &quot;AST&quot; &quot;5.9&quot; &quot;8.8&quot; &quot;10.4&quot; ...
+##   ..$ Per Game: chr [1:65] &quot;STL&quot; &quot;1.3&quot; &quot;1.8&quot; &quot;1.6&quot; ...
+##   ..$ Per Game: chr [1:65] &quot;BLK&quot; &quot;1.5&quot; &quot;0.7&quot; &quot;0.4&quot; ...
+##   ..$ Shooting: chr [1:65] &quot;FG%&quot; &quot;.578&quot; &quot;.449&quot; &quot;.425&quot; ...
+##   ..$ Shooting: chr [1:65] &quot;3P%&quot; &quot;.256&quot; &quot;.367&quot; &quot;.343&quot; ...
+##   ..$ Shooting: chr [1:65] &quot;FT%&quot; &quot;.729&quot; &quot;.858&quot; &quot;.845&quot; ...
+##   ..$ Advanced: chr [1:65] &quot;WS&quot; &quot;14.4&quot; &quot;15.4&quot; &quot;13.1&quot; ...
+##   ..$ Advanced: chr [1:65] &quot;WS/48&quot; &quot;.292&quot; &quot;.289&quot; &quot;.224&quot; ...
+##  $ :'data.frame':    11 obs. of  18 variables:
+##   ..$         : chr [1:11] &quot;Season&quot; &quot;1975-76&quot; &quot;1974-75&quot; &quot;1974-75&quot; ...
+##   ..$         : chr [1:11] &quot;Lg&quot; &quot;ABA&quot; &quot;ABA&quot; &quot;ABA&quot; ...
+##   ..$         : chr [1:11] &quot;Player&quot; &quot;Julius Erving&quot; &quot;Julius Erving (Tie)&quot; &quot;George McGinnis (Tie)&quot; ...
+##   ..$         : chr [1:11] &quot;Voting&quot; &quot;(V)&quot; &quot;(V)&quot; &quot;(V)&quot; ...
+##   ..$         : chr [1:11] &quot;Age&quot; &quot;25&quot; &quot;24&quot; &quot;24&quot; ...
+##   ..$         : chr [1:11] &quot;Tm&quot; &quot;NYA&quot; &quot;NYA&quot; &quot;INA&quot; ...
+##   ..$         : chr [1:11] &quot;G&quot; &quot;84&quot; &quot;84&quot; &quot;79&quot; ...
+##   ..$ Per Game: chr [1:11] &quot;MP&quot; &quot;38.6&quot; &quot;40.5&quot; &quot;40.4&quot; ...
+##   ..$ Per Game: chr [1:11] &quot;PTS&quot; &quot;29.3&quot; &quot;27.9&quot; &quot;29.8&quot; ...
+##   ..$ Per Game: chr [1:11] &quot;TRB&quot; &quot;11.0&quot; &quot;10.9&quot; &quot;14.3&quot; ...
+##   ..$ Per Game: chr [1:11] &quot;AST&quot; &quot;5.0&quot; &quot;5.5&quot; &quot;6.3&quot; ...
+##   ..$ Per Game: chr [1:11] &quot;STL&quot; &quot;2.5&quot; &quot;2.2&quot; &quot;2.6&quot; ...
+##   ..$ Per Game: chr [1:11] &quot;BLK&quot; &quot;1.9&quot; &quot;1.9&quot; &quot;0.7&quot; ...
+##   ..$ Shooting: chr [1:11] &quot;FG%&quot; &quot;.507&quot; &quot;.506&quot; &quot;.451&quot; ...
+##   ..$ Shooting: chr [1:11] &quot;3P%&quot; &quot;.330&quot; &quot;.333&quot; &quot;.354&quot; ...
+##   ..$ Shooting: chr [1:11] &quot;FT%&quot; &quot;.801&quot; &quot;.799&quot; &quot;.724&quot; ...
+##   ..$ Advanced: chr [1:11] &quot;WS&quot; &quot;17.7&quot; &quot;17.6&quot; &quot;11.6&quot; ...
+##   ..$ Advanced: chr [1:11] &quot;WS/48&quot; &quot;.262&quot; &quot;.248&quot; &quot;.174&quot; ...
+##  $ :'data.frame':    41 obs. of  3 variables:
+##   ..$ Player: chr [1:41] &quot;Kareem Abdul-Jabbar&quot; &quot;Michael Jordan&quot; &quot;Bill Russell&quot; &quot;Wilt Chamberlain&quot; ...
+##   ..$ Lg    : chr [1:41] &quot;NBA&quot; &quot;NBA&quot; &quot;NBA&quot; &quot;NBA&quot; ...
+##   ..$ Count : int [1:41] 6 5 5 4 4 3 3 3 3 2 ...</code></pre>
+<blockquote>
+<p>El resultado anterior muestra un claro error en los encabezados de las tablas. Tambien se deben unir las 2 primeras e ignorar/eliminar la tercera dado que no sera procesada.</p>
+</blockquote>
+<p>La cantidad de datos vacios en la tabla #1 es: <code>60</code><br />
+La cantidad de datos vacios en la tabla #2 es: <code>11</code></p>
+<blockquote>
+<p>Esta cantidad de datos vacios nos indica que los datos deben den limpiarse antes de procesarse.</p>
+</blockquote>
+</div>
+<div id="exploracion-de-los-datos-de-la-pagina-de-wiki" class="section level4">
+<h4>Exploracion de los datos de la pagina de Wiki</h4>
+<p>La pagina de Wiki tiene: <code>9</code> tablas.<br />
+Los encabezados de las tablase de Wiki son:</p>
+<pre class="r"><code>#mostrar los encabezados de cada tabla
+str(wiki_pageTables) </code></pre>
+<pre><code>## List of 9
+##  $ :'data.frame':    10 obs. of  3 variables:
+##   ..$ National Basketball Association awards and honors: chr [1:10] &quot;Championship&quot; &quot;Larry O'Brien Trophy \n\n\n\nBrown Trophy (defunct)&quot; &quot;Larry O'Brien Trophy&quot; &quot;Individual awards&quot; ...
+##   ..$ NA                                               : chr [1:10] NA &quot;Larry O'Brien Trophy&quot; &quot;Brown Trophy (defunct)&quot; NA ...
+##   ..$ NA                                               : chr [1:10] NA &quot;Brown Trophy (defunct)&quot; NA NA ...
+##  $ :'data.frame':    1 obs. of  2 variables:
+##   ..$ X1: chr &quot;Larry O'Brien Trophy&quot;
+##   ..$ X2: chr &quot;Brown Trophy (defunct)&quot;
+##  $ :'data.frame':    1 obs. of  2 variables:
+##   ..$ X1: chr &quot;All-Star Game MVP\nCoach of the Year\nCommunity Assist Award\nDefensive Player of the Year\nExecutive of the Ye&quot;| __truncated__
+##   ..$ X2: chr &quot;Most Improved Player\nMost Valuable Player\nRookie of the Year\nSixth Man of the Year\nSportsmanship Award\nTwy&quot;| __truncated__
+##  $ :'data.frame':    1 obs. of  2 variables:
+##   ..$ X1: chr &quot;All-NBA Team\nAll-Rookie Team&quot;
+##   ..$ X2: chr &quot;All-Defensive Team&quot;
+##  $ :'data.frame':    5 obs. of  2 variables:
+##   ..$ X1: chr [1:5] &quot;^&quot; &quot;*&quot; &quot;&quot; &quot;Player (X)&quot; ...
+##   ..$ X2: chr [1:5] &quot;Denotes player who is still active in the NBA&quot; &quot;Inducted into the Naismith Memorial Basketball Hall of Fame&quot; &quot;Denotes player whose team won championship that year&quot; &quot;Denotes the number of times the player had been named MVP at that time&quot; ...
+##  $ :'data.frame':    64 obs. of  5 variables:
+##   ..$ Season     : chr [1:64] &quot;1955–56&quot; &quot;1956–57&quot; &quot;1957–58&quot; &quot;1958–59&quot; ...
+##   ..$ Player     : chr [1:64] &quot;Bob Pettit*&quot; &quot;Bob Cousy*&quot; &quot;Bill Russell*&quot; &quot;Bob Pettit* (2)&quot; ...
+##   ..$ Position   : chr [1:64] &quot;Power forward&quot; &quot;Point guard&quot; &quot;Center&quot; &quot;Power forward&quot; ...
+##   ..$ Nationality: chr [1:64] &quot;United States&quot; &quot;United States&quot; &quot;United States&quot; &quot;United States&quot; ...
+##   ..$ Team       : chr [1:64] &quot;St. Louis Hawks&quot; &quot;Boston Celtics&quot; &quot;Boston Celtics (2)&quot; &quot;St. Louis Hawks (2)&quot; ...
+##  $ :'data.frame':    13 obs. of  4 variables:
+##   ..$ Awards : int [1:13] 6 5 5 4 4 3 3 3 2 2 ...
+##   ..$ Player : chr [1:13] &quot;Kareem Abdul-Jabbar&quot; &quot;Bill Russell&quot; &quot;Michael Jordan&quot; &quot;Wilt Chamberlain&quot; ...
+##   ..$ Team(s): chr [1:13] &quot;Milwaukee Bucks (3) / Los Angeles Lakers (3)&quot; &quot;Boston Celtics&quot; &quot;Chicago Bulls&quot; &quot;Philadelphia Warriors (1) / Philadelphia 76ers (3)&quot; ...
+##   ..$ Years  : chr [1:13] &quot;1971, 1972, 1974, 1976, 1977, 1980&quot; &quot;1958, 1961, 1962, 1963, 1965&quot; &quot;1988, 1991, 1992, 1996, 1998&quot; &quot;1960, 1966, 1967, 1968&quot; ...
+##  $ :'data.frame':    21 obs. of  3 variables:
+##   ..$ Awards: int [1:21] 10 8 6 6 4 4 3 3 3 2 ...
+##   ..$ Teams : chr [1:21] &quot;Boston Celtics&quot; &quot;Los Angeles Lakers&quot; &quot;Philadelphia 76ers&quot; &quot;Chicago Bulls&quot; ...
+##   ..$ Years : chr [1:21] &quot;1957, 1958, 1961, 1962, 1963, 1965, 1973, 1984, 1985, 1986&quot; &quot;1976, 1977, 1980, 1987, 1989, 1990, 2000, 2008&quot; &quot;1966, 1967, 1968, 1981, 1983, 2001&quot; &quot;1988, 1991, 1992, 1996, 1998, 2011&quot; ...
+##  $ :'data.frame':    1 obs. of  2 variables:
+##   ..$ vteNBA Most Valuable Player Award: chr &quot;1956: Pettit\n1957: Cousy\n1958: Russell\n1959: Pettit\n1960: Chamberlain\n1961: Russell\n1962: Russell\n1963: &quot;| __truncated__
+##   ..$ vteNBA Most Valuable Player Award: chr &quot;1956: Pettit\n1957: Cousy\n1958: Russell\n1959: Pettit\n1960: Chamberlain\n1961: Russell\n1962: Russell\n1963: &quot;| __truncated__</code></pre>
+<blockquote>
+<p>El resultado anterior nos muestra que los datos a extraer están en la tabla #6 y que sus ecabezados han sido extraidos correctamente.</p>
+</blockquote>
+<p>La cantidad de datos vacios en la tabla #6 es: <code>0</code><br />
+&gt; Esta cantidad de datos vacios nos indica una alta clalidad en los datos.</p>
+</div>
 </div>
 <div id="preparacion-de-los-datos" class="section level3">
 <h3>Preparación de los datos</h3>
 <ul>
 <li><strong><em>Seleccione los datos de su interés en la página previamente identificada.</em></strong></li>
 </ul>
-<pre class="r"><code># seleccionar datos</code></pre>
+<pre class="r"><code>#agregar y almacenar las tablas #1 y #2 de la NBA
+nba_Table&lt;- rbind(nba_pageTables[[1]], nba_pageTables[[2]])
+
+#seleccionar la primera fila como encabezados.
+names(nba_Table) &lt;- nba_Table[1,]
+
+#almacenar la tabla #3 de la pagina de Wiki, no necesita cambios por el momento.
+wiki_Table&lt;- wiki_pageTables[[6]]
+
+head(nba_Table)</code></pre>
+<pre><code>##    Season  Lg                Player Voting Age  Tm  G   MP  PTS  TRB  AST
+## 1  Season  Lg                Player Voting Age  Tm  G   MP  PTS  TRB  AST
+## 2 2018-19 NBA Giannis Antetokounmpo    (V)  24 MIL 72 32.8 27.7 12.5  5.9
+## 3 2017-18 NBA          James Harden    (V)  28 HOU 72 35.4 30.4  5.4  8.8
+## 4 2016-17 NBA     Russell Westbrook    (V)  28 OKC 81 34.6 31.6 10.7 10.4
+## 5 2015-16 NBA         Stephen Curry    (V)  27 GSW 79 34.2 30.1  5.4  6.7
+## 6 2014-15 NBA         Stephen Curry    (V)  26 GSW 80 32.7 23.8  4.3  7.7
+##   STL BLK  FG%  3P%  FT%   WS WS/48
+## 1 STL BLK  FG%  3P%  FT%   WS WS/48
+## 2 1.3 1.5 .578 .256 .729 14.4  .292
+## 3 1.8 0.7 .449 .367 .858 15.4  .289
+## 4 1.6 0.4 .425 .343 .845 13.1  .224
+## 5 2.1 0.2 .504 .454 .908 17.9  .318
+## 6 2.0 0.2 .487 .443 .914 15.7  .288</code></pre>
+<pre class="r"><code>head(wiki_Table)</code></pre>
+<pre><code>##    Season            Player      Position   Nationality
+## 1 1955–56       Bob Pettit* Power forward United States
+## 2 1956–57        Bob Cousy*   Point guard United States
+## 3 1957–58     Bill Russell*        Center United States
+## 4 1958–59   Bob Pettit* (2) Power forward United States
+## 5 1959–60 Wilt Chamberlain*        Center United States
+## 6 1960–61 Bill Russell* (2)        Center United States
+##                    Team
+## 1       St. Louis Hawks
+## 2        Boston Celtics
+## 3    Boston Celtics (2)
+## 4   St. Louis Hawks (2)
+## 5 Philadelphia Warriors
+## 6    Boston Celtics (3)</code></pre>
+<blockquote>
+<p>Segun la vista anterior se observa que de la tabla NBA_table debe eliminarse la primera fila (pues contiene el encabezado). El mismo problema se presenta en la columna 66. También se nota que las columnas “lg” y “voting” no seran de utilizadas para hacer el clustering de la información. Serán removidas en la seguiente face.</p>
+</blockquote>
+<blockquote>
+<p>Con respecto a la tabla wiki_table se observa que que deben ser removidos los cuantificadores de los nombres “(n)” de algunos nombres en la columna “Team”. La columna “Player” tambien debe eliminarse porque estaría repetida en la tabla nba_table</p>
+</blockquote>
 <ul>
 <li><strong><em>Limpieza de los datos: limpie lo que sea necesario aplicando expresiones regulares.</em></strong></li>
 </ul>
-<pre class="r"><code># limpiar datos</code></pre>
+<pre class="r"><code>#Eliminar las colmunas: &quot;Lg&quot;, &quot;Voting&quot; del frame nba_Table, no aportan datos importantes, eliminar la columan Tm, se utilizara la del frame de wiki_Table.
+nba_Table$Lg &lt;- NULL
+nba_Table$Voting &lt;- NULL
+nba_Table$Tm &lt;- NULL
+
+#eliminar las filas que contienen encabezados como datos (busca un encabezado dentro de los datos)
+nba_Table&lt;- nba_Table[ grep(&quot;Season&quot;, nba_Table$Season, invert = TRUE) , ]
+
+head(nba_Table)</code></pre>
+<pre><code>##    Season                Player Age  G   MP  PTS  TRB  AST STL BLK  FG%
+## 2 2018-19 Giannis Antetokounmpo  24 72 32.8 27.7 12.5  5.9 1.3 1.5 .578
+## 3 2017-18          James Harden  28 72 35.4 30.4  5.4  8.8 1.8 0.7 .449
+## 4 2016-17     Russell Westbrook  28 81 34.6 31.6 10.7 10.4 1.6 0.4 .425
+## 5 2015-16         Stephen Curry  27 79 34.2 30.1  5.4  6.7 2.1 0.2 .504
+## 6 2014-15         Stephen Curry  26 80 32.7 23.8  4.3  7.7 2.0 0.2 .487
+## 7 2013-14          Kevin Durant  25 81 38.5 32.0  7.4  5.5 1.3 0.7 .503
+##    3P%  FT%   WS WS/48
+## 2 .256 .729 14.4  .292
+## 3 .367 .858 15.4  .289
+## 4 .343 .845 13.1  .224
+## 5 .454 .908 17.9  .318
+## 6 .443 .914 15.7  .288
+## 7 .391 .873 19.2  .295</code></pre>
+<pre class="r"><code>#Eliminar las colmunas: &quot;Player&quot; del frame wiki_Table (ya está en la otra tabla) y Nationality (no será tomada en cuenta para el analisys)
+wiki_Table$Player &lt;- NULL
+wiki_Table$Nationality &lt;- NULL
+
+#limpiar los nombres de los equipos en la columna &quot;Teams&quot; utilizando expresiones regulares,
+#se elimina el nombre de la ciudad y se utiliza unicamente el nombre del equipo
+wiki_Table$Team &lt;- str_match(wiki_Table$Team,'([a-zA-Z]+)(\\s*\\([0-9]+\\))?$')[,2]
+
+#reemplazar caracteres invalidos para &quot;-&quot; en el campo &quot;Season&quot;. Sí, son diferentes.
+wiki_Table$Season &lt;- str_replace(wiki_Table$Season,'\\–','\\-')
+
+head(wiki_Table)</code></pre>
+<pre><code>##    Season      Position     Team
+## 1 1955-56 Power forward    Hawks
+## 2 1956-57   Point guard  Celtics
+## 3 1957-58        Center  Celtics
+## 4 1958-59 Power forward    Hawks
+## 5 1959-60        Center Warriors
+## 6 1960-61        Center  Celtics</code></pre>
 <ul>
-<li><strong><em>Construcción de nuevos datos (atributos). Si no aplica, indíquelo. Si construye nuevas columnas o atributos, explique.</em></strong></li>
+<li><strong><em>Construcción de nuevos datos (atributos). Si no aplica, indíquelo. Si construye nuevas columnas o atributos, explique.</em></strong> &gt; En esta face se uniran los datos de ambas tablas por el campo “Season” que comparten ambas.</li>
 </ul>
-<pre class="r"><code># construir nuevos datos</code></pre>
+<pre class="r"><code># unir ambas tablas en una sola con todos los atributos.
+players_table &lt;- merge(nba_Table,wiki_Table, by = &quot;Season&quot;)
+
+#reorganizar la posicion de las columnas
+players_table&lt;- players_table[c(1,2,3,17,16,4,5,6,7,8,9,10,11,12,13,14,15)]
+
+head(players_table)</code></pre>
+<pre><code>##    Season           Player Age     Team      Position  G   MP  PTS  TRB
+## 1 1955-56       Bob Pettit  23    Hawks Power forward 72 38.8 25.7 16.2
+## 2 1956-57        Bob Cousy  28  Celtics   Point guard 64 36.9 20.6  4.8
+## 3 1957-58     Bill Russell  23  Celtics        Center 69 38.3 16.6 22.7
+## 4 1958-59       Bob Pettit  26    Hawks Power forward 72 39.9 29.2 16.4
+## 5 1959-60 Wilt Chamberlain  23 Warriors        Center 72 46.4 37.6 27.0
+## 6 1960-61     Bill Russell  26  Celtics        Center 78 44.3 16.9 23.9
+##   AST STL BLK  FG% 3P%  FT%   WS WS/48
+## 1 2.6         .429     .736 13.8  .236
+## 2 7.5         .378     .821  8.8  .178
+## 3 2.9         .442     .519 11.3  .206
+## 4 3.1         .438     .759 14.8  .246
+## 5 2.3         .461     .582 17.0  .245
+## 6 3.4         .426     .550 13.0  .181</code></pre>
 <ul>
 <li><strong><em>Transformaciones aplicadas a los datos. Describa las transformaciones realizadas.</em></strong></li>
 </ul>
 <pre class="r"><code># transformar datos
 
-
-# formar un DataFrame</code></pre>
+#transformar las columnas a valores numericos a su correspondiente tipo.
+sapply(players_table, class) </code></pre>
+<pre><code>##      Season      Player         Age        Team    Position           G 
+## &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; 
+##          MP         PTS         TRB         AST         STL         BLK 
+## &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; 
+##         FG%         3P%         FT%          WS       WS/48 
+## &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot;</code></pre>
+<pre class="r"><code>numeric_columns &lt;- c(3,6,7,8,9,10,11,12,13,14,15,16,17)
+players_table[ , numeric_columns] &lt;- apply(players_table[ , numeric_columns], 2,  # Especifica la funcion en la llamada
+                    function(x) as.numeric(as.character(x)))
+sapply(players_table, class)</code></pre>
+<pre><code>##      Season      Player         Age        Team    Position           G 
+## &quot;character&quot; &quot;character&quot;   &quot;numeric&quot; &quot;character&quot; &quot;character&quot;   &quot;numeric&quot; 
+##          MP         PTS         TRB         AST         STL         BLK 
+##   &quot;numeric&quot;   &quot;numeric&quot;   &quot;numeric&quot;   &quot;numeric&quot;   &quot;numeric&quot;   &quot;numeric&quot; 
+##         FG%         3P%         FT%          WS       WS/48 
+##   &quot;numeric&quot;   &quot;numeric&quot;   &quot;numeric&quot;   &quot;numeric&quot;   &quot;numeric&quot;</code></pre>
+<pre class="r"><code>head(players_table)</code></pre>
+<pre><code>##    Season           Player Age     Team      Position  G   MP  PTS  TRB
+## 1 1955-56       Bob Pettit  23    Hawks Power forward 72 38.8 25.7 16.2
+## 2 1956-57        Bob Cousy  28  Celtics   Point guard 64 36.9 20.6  4.8
+## 3 1957-58     Bill Russell  23  Celtics        Center 69 38.3 16.6 22.7
+## 4 1958-59       Bob Pettit  26    Hawks Power forward 72 39.9 29.2 16.4
+## 5 1959-60 Wilt Chamberlain  23 Warriors        Center 72 46.4 37.6 27.0
+## 6 1960-61     Bill Russell  26  Celtics        Center 78 44.3 16.9 23.9
+##   AST STL BLK   FG% 3P%   FT%   WS WS/48
+## 1 2.6  NA  NA 0.429  NA 0.736 13.8 0.236
+## 2 7.5  NA  NA 0.378  NA 0.821  8.8 0.178
+## 3 2.9  NA  NA 0.442  NA 0.519 11.3 0.206
+## 4 3.1  NA  NA 0.438  NA 0.759 14.8 0.246
+## 5 2.3  NA  NA 0.461  NA 0.582 17.0 0.245
+## 6 3.4  NA  NA 0.426  NA 0.550 13.0 0.181</code></pre>
+<pre class="r"><code># formar un DataFrame</code></pre>
 </div>
 <div id="fase-de-modelado" class="section level3">
 <h3>Fase de modelado</h3>
