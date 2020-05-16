@@ -25,6 +25,7 @@ suppressWarnings(suppressMessages(library(rvest)))
 suppressWarnings(suppressMessages(library(FactoMineR)))
 suppressWarnings(suppressMessages(library(ggplot2)))
 suppressWarnings(suppressMessages(library(purrr)))
+suppressWarnings(suppressMessages(library(dplyr)))
 ```
 # Clustering
 ___
@@ -160,7 +161,7 @@ players_table <- merge(nba_Table,wiki_Table, by = "Season")
 #reorganizar la posicion de las columnas
 players_table<- players_table[c(1,2,3,17,16,4,5,6,7,8,9,10,11,12,13,14,15)]
 
-head(players_table, 100)
+head(players_table)
 
 ```
 
@@ -180,19 +181,32 @@ head(players_table)
 # formar un DataFrame
 ```
 ```{r}
-players_table$id <- paste(players_table$Player,'(',players_table$Season,')')
-players_ds<- players_table[c(18,6,7,8,9,10,11,12,13,14,15,16,17)]
-head(players_ds,100)
+#----------------------------
+# REVISAR OMIT - 24 rows menos
+#----------------------------
+na_omitted <- na.omit(players_table) 
+na_omitted
+
+# Normalizacion de los datos
+players_normal <- na_omitted %>% mutate_at(6:17, funs((. - mean(.))/sd(.)))
+head(players_normal)
+
+```
+
+
+```{r}
+players_normal$id <- paste(players_normal$Player,'(',players_normal$Season,')')
+players_ds<- players_normal[c(18,6,7,8,9,10,11,12,13,14,15,16,17)]
+head(players_ds)
 ```
 ```{r}
 rownames(players_ds) <- players_ds$id
 players_ds$id <- NULL
-
-```
-
-```{r}
 players_ds
+
 ```
+
+
 ### Fase de modelado
 
 ***Para esta fase se le solicita que seleccione dos de los algoritmos de clustering vistos en clase, o bien ejecutar dos veces sólo uno de los algoritmos estudiados pero usando diferentes parámetros cada vez.***
@@ -200,6 +214,7 @@ players_ds
 * ***Selecccion de técnicas***
 ```{r}
 # seleccion de tecnicas
+
 ```  
 * ***Construcción de cada modelo***
     * ***Selección de los parametros***   
