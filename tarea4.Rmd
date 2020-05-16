@@ -184,7 +184,15 @@ players_table$id <- paste(players_table$Player,'(',players_table$Season,')')
 players_ds<- players_table[c(18,6,7,8,9,10,11,12,13,14,15,16,17)]
 head(players_ds,100)
 ```
+```{r}
+rownames(players_ds) <- players_ds$id
+players_ds$id <- NULL
 
+```
+
+```{r}
+players_ds
+```
 ### Fase de modelado
 
 ***Para esta fase se le solicita que seleccione dos de los algoritmos de clustering vistos en clase, o bien ejecutar dos veces sólo uno de los algoritmos estudiados pero usando diferentes parámetros cada vez.***
