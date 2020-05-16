@@ -197,7 +197,7 @@ head(players_normal)
 
 
 ```{r}
-players_normal$id <- paste(players_normal$Player,'(',players_normal$Season,')')
+players_normal$id <- paste(players_normal$Player,'(',players_normal$Season,')','-',players_normal$Position)
 players_ds<- players_normal[c(18,6,7,8,9,10,11,12,13,14,15,16,17)]
 head(players_ds)
 ```
@@ -223,7 +223,7 @@ players_ds
     # seleccion de los parametros
     
     # ejecución del algoritmo kmeans con k =3
-    clusters <- kmeans(players_ds,3,nstart=20)
+    clusters <- kmeans(players_ds,5,nstart=20)
 
     #obtener cantidad de registros en cada cluster y los centroides
     descClusters<- data.frame(clusters$size,clusters$centers)
