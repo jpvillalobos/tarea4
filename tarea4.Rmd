@@ -48,7 +48,7 @@ ___
 
 ### Criterio de éxito
 
-* Aplicar los coceptos vistos en clase correctamente.
+* Aplicar los conceptos vistos en clase correctamente.
 
 ### Entendimiento de los datos
 
@@ -109,8 +109,8 @@ La cantidad de datos vacios en la tabla #6 es: ```r sum(wiki_pageTables[[6]] == 
 
 * ***Seleccione los datos de su interés en la página previamente identificada.***
 ```{r}
-#agregar y almacenar las tablas #1 y #2 de la NBA
-nba_Table<- rbind(nba_pageTables[[1]], nba_pageTables[[2]])
+#agregar y almacenar la tablas #1 y #2 de la NBA
+nba_Table<- nba_pageTables[[1]]
 
 #seleccionar la primera fila como encabezados.
 names(nba_Table) <- nba_Table[1,]
@@ -121,7 +121,7 @@ wiki_Table<- wiki_pageTables[[6]]
 head(nba_Table)
 head(wiki_Table)
 ```
-> Segun la vista  anterior se observa que de la tabla NBA_table debe eliminarse la primera fila (pues contiene el encabezado). El mismo problema se presenta en la columna 66. También se nota que las columnas "lg" y "voting" no seran de utilizadas para hacer el clustering de la información. Serán removidas en la seguiente face.
+> Segun la vista  anterior se observa que de la tabla NBA_table debe eliminarse la primera fila (pues contiene el encabezado). También se nota que las columnas "lg" y "voting" no seran de utilizadas para hacer el clustering de la información. Serán removidas en la seguiente face.
 
 > Con respecto a la tabla wiki_table se observa que que deben ser removidos los cuantificadores de los nombres "(n)" de algunos nombres en la columna "Team". La columna "Player" tambien debe eliminarse porque estaría repetida en la tabla nba_table
 
@@ -160,7 +160,7 @@ players_table <- merge(nba_Table,wiki_Table, by = "Season")
 #reorganizar la posicion de las columnas
 players_table<- players_table[c(1,2,3,17,16,4,5,6,7,8,9,10,11,12,13,14,15)]
 
-head(players_table)
+head(players_table, 100)
 
 ```
 
@@ -169,14 +169,20 @@ head(players_table)
 # transformar datos
 
 #transformar las columnas a valores numericos a su correspondiente tipo.
-sapply(players_table, class) 
+sapply(players_table, class)
+
 numeric_columns <- c(3,6,7,8,9,10,11,12,13,14,15,16,17)
 players_table[ , numeric_columns] <- apply(players_table[ , numeric_columns], 2,  # Especifica la funcion en la llamada
-                    function(x) as.numeric(as.character(x)))
+                                           function(x) as.numeric(as.character(x)))
 sapply(players_table, class)
 head(players_table)
 
 # formar un DataFrame
+```
+```{r}
+players_table$id <- paste(players_table$Player,'(',players_table$Season,')')
+players_ds<- players_table[c(18,6,7,8,9,10,11,12,13,14,15,16,17)]
+head(players_ds,100)
 ```
 
 ### Fase de modelado
