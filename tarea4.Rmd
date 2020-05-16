@@ -26,6 +26,8 @@ suppressWarnings(suppressMessages(library(FactoMineR)))
 suppressWarnings(suppressMessages(library(ggplot2)))
 suppressWarnings(suppressMessages(library(purrr)))
 suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(factoextra)))
+install.packages("foreign")
 ```
 # Clustering
 ___
@@ -206,7 +208,6 @@ players_ds
 
 ```
 
-
 ### Fase de modelado
 
 ***Para esta fase se le solicita que seleccione dos de los algoritmos de clustering vistos en clase, o bien ejecutar dos veces sólo uno de los algoritmos estudiados pero usando diferentes parámetros cada vez.***
@@ -220,6 +221,19 @@ players_ds
     * ***Selección de los parametros***   
     ```{r}
     # seleccion de los parametros
+    
+    # ejecución del algoritmo kmeans con k =3
+    clusters <- kmeans(players_ds,3,nstart=20)
+
+    #obtener cantidad de registros en cada cluster y los centroides
+    descClusters<- data.frame(clusters$size,clusters$centers)
+    descClusters
+    
+    # crear un data frame combinando el cluster asignado y los atributos originales
+    
+    resultado <- data.frame(clusters$cluster,players_ds)
+    
+    head(resultado,50)
     ```  
     * ***Ejecución***  
     ```{r}
@@ -230,13 +244,30 @@ players_ds
     # modelo obtenido
 
     # grafico modelo #1
-
+    # construir un grafico
+    ggplot(players_ds,
+           aes(PTS,BLK,
+               color = clusters$cluster)) + geom_point()+ ggtitle(label='Distribución por cluster')
+    
+    # otra forma de visualizar los clusters
+    fviz_cluster(clusters,data=players_ds[,c(1,2)],palette='jco',ggtheme = theme_minimal())
     # grafico modelo #2
     ```  
 * ***Evaluación de los modelos***
     * ***Compare los resultados obtenidos con cada modelo***  
     ```{r}
     # evaluacion modelo #1
+    # cálculo del score Silhouette
+    score_sil<- silhouette(clusters$cluster,daisy(players_ds))
+    
+    # cálculo del valor óptimo de k usando el score silhouette
+    fviz_nbclust(players_ds,kmeans,method = 'silhouette',k.max = 10)
+    
+    # cálculo del valor óptimo de k usando el método del codo
+    fviz_nbclust(players_ds,kmeans,method = 'wss',k.max = 10)
+    
+    # cálculo del valor óptimo de k usando la estadística gap
+    fviz_nbclust(players_ds,kmeans,method = 'gap_stat',k.max = 10)
 
     # evaluacion modelo #2
     ```
