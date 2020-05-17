@@ -3,22 +3,36 @@ title: "Tarea 4 - Mineria de Datos e Inteligencia de Negocios"
 author: "Jonathan Gonzalez, Gonzalo Rodriguez, Juan P. Villalobos"
 date: "05/17/2020"
 output:
-  # pdf_document: default
   html_document: default
+  # pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
 #instalar librerias
+#options(repos="https://cran.rstudio.com" )
 
-#install.packages(tibble)
-#install.packages(stringr)
-#install.packages(rves)
-#install.packages(FactoMineR)
-#install.packages(ggplot2)
+#install.packages("evaluate")
+#install.packages("tibble")
+#install.packages("stringr")
+#install.packages("rvest")
+#install.packages("FactoMineR")
+#install.packages("ggplot2")
+#install.packages("purrr")
+#install.packages("dplyr")
+#install.packages("cluster")
+#install.packages("factoextra")
+#install.packages("knitr")
+#install.packages("fpc")
+#install.packages("foreign")
+#install.packages("GGally")
+#install.packages("kableExtra")
+install.packages("dendextend")
+install.packages("clValid")
+install.packages("NbClust")
 
-options(repos="https://cran.rstudio.com" )
+
+
+knitr::opts_chunk$set(echo = TRUE)
 
 # cargar librerias necesarias
 suppressWarnings(suppressMessages(library(tibble)))
@@ -32,7 +46,12 @@ suppressWarnings(suppressMessages(library(cluster)))
 suppressWarnings(suppressMessages(library(factoextra)))
 suppressWarnings(suppressMessages(library(knitr)))
 suppressWarnings(suppressMessages(library(fpc)))
-install.packages("foreign")
+suppressWarnings(suppressMessages(library(foreign)))
+suppressWarnings(suppressMessages(library(GGally)))
+suppressWarnings(suppressMessages(library(kableExtra)))
+suppressWarnings(suppressMessages(library(dendextend)))
+suppressWarnings(suppressMessages(library(clValid)))
+suppressWarnings(suppressMessages(library(NbClust)))
 ```
 # Web Mining y Clustering
 ___
@@ -142,8 +161,9 @@ kable(wiki_Table)
 > Con respecto a la tabla wiki_table se observa que que deben ser removidas las columnas Team y Nationality pues no son de utilidad para el análisis. La columna "Player" tambien debe eliminarse porque está duplicada en la tabla nba_table
 
 ```{r}
-# Eliminar las columnas: "Age", Lg", "Voting", "Tm", "WS", "WS/48" del frame nba_Table pues no aportan datos importantes al modelo. 
+# Eliminar las columnas: "Age", "G", Lg", "Voting", "Tm", "WS", "WS/48" del frame nba_Table pues no aportan datos importantes al modelo.
 nba_Table$Age <- NULL
+nba_Table$G <- NULL
 nba_Table$Lg <- NULL
 nba_Table$Voting <- NULL
 nba_Table$Tm <- NULL
@@ -175,7 +195,7 @@ kable(wiki_Table)
 players_table <- merge(nba_Table,wiki_Table, by = "Season")
 
 # Reorganizar la posición de las columnas para facilitar la visualización
-players_table<- players_table[c(1,2,13,3,4,5,6,7,8,9,10,11,12)]
+players_table<- players_table[c(1,2,12,3,4,5,6,7,8,9,10,11)]
 
 kable(players_table)
 
@@ -205,7 +225,7 @@ kable(players_table)
 # Transformar las columnas con valores númericos a su correspondiente tipo.
 sapply(players_table, class)
 
-numeric_columns <- c(1:10)
+numeric_columns <- c(1:9)
 players_table[ , numeric_columns] <- apply(players_table[ , numeric_columns], 2,  # Especifica la funcion en la llamada
                                            function(x) as.numeric(as.character(x)))
 sapply(players_table, class)
@@ -265,9 +285,7 @@ plotcluster(players_normal, clusters$cluster)
 # otra forma de visualizar los clusters
 fviz_cluster(clusters,data=players_normal[,c(1,2)],palette='jco',ggtheme = theme_minimal())
 
-
-install.packages("ggplot2")
-ggparcoord(data=players_normal,columns=c(1:10))
+ggparcoord(data=players_normal,columns=c(1:9))
 
 ```  
 * ***Evaluación del modelo***
@@ -340,5 +358,42 @@ fviz_nbclust(players_normal,kmeans,method = 'wss',k.max = 10)
 
 # cálculo del valor óptimo de k usando la estadística gap
 fviz_nbclust(players_normal,kmeans,method = 'gap_stat',k.max = 10)
+
+```
+
+#### Construcción de modelo Jerárquico
+### Cálculo de la matriz de distancias
+```{r}
+# se calculan las distancias entre los puntos
+    dist_matrix<- dist(players_normal,method = 'euclidean')
+```
+
+### Clustering Jerárquico Aglomerativo
+
+```{r}
+# se establece el criterio de linkage y se ejecuta el clustering
+
+    clustJer_conAvg<- hclust(dist_matrix,method = 'average')
+
+# se genera un segundo clustering usando otro criterio de linkage
+   clustJer_single<- hclust(dist_matrix,method = 'single')
+```
+
+### Visualización de los clusters - average
+
+```{r fig.align='center', fig.height=8}
+
+# dendrograma del clustering  usando average
+    plot(clustJer_conAvg)
+```
+
+
+
+```{r fig.align='center'}
+     dendrograma<-as.dendrogram(clustJer_conAvg)
+    
+    color_dendro<- color_branches(dendrograma,k=4)
+    
+    plot(color_dendro)
 
 ```
