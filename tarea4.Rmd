@@ -348,39 +348,39 @@ ggparcoord(data=resultado2,columns=2:10, groupColumn=1,mapping=aes(color=as.fact
 
 #### Construcción de modelo Jerárquico
 
-Cálculo de la matriz de distancias
+Cálculo de la matriz de distancias euclidianas.
 ```{r}
 # se calculan las distancias entre los puntos
     dist_matrix<- dist(players_normal,method = 'euclidean')
 ```
 
-Ejecución del modelo
+Ejecución del modelo (usando el método "average")
 ```{r}
 # se establece el criterio de linkage y se ejecuta el clustering
+clustJer_conAvg<- hclust(dist_matrix,method = 'average')
 
-    clustJer_conAvg<- hclust(dist_matrix,method = 'average')
-
-# se genera un segundo clustering usando otro criterio de linkage
-   clustJer_single<- hclust(dist_matrix,method = 'single')
 ```
 
-### Visualización de los clusters - average
+### Visualización del cluster
 
 ```{r fig.align='center', fig.height=8}
 
 # dendrograma del clustering  usando average
-    plot(clustJer_conAvg)
+plot(clustJer_conAvg)
 ```
 
 
 
 ```{r fig.align='center'}
-     dendrograma<-as.dendrogram(clustJer_conAvg)
-    
-    color_dendro<- color_branches(dendrograma,k=4)
-    
-    plot(color_dendro)
-
+dendrograma<-as.dendrogram(clustJer_conAvg)
+color_dendro<- color_branches(dendrograma,k=4)
+plot(color_dendro)
 ```
 
 * ***Evaluación de los modelos ***
+
+Los modelos obtenidos utilizando k-means arrojan resultados muy similares a los que una persona "manualmente" realizaría: separar a los jugadores por "roles" (k=2) o por posición (k=5), con la salvedad de que el algoritmo obviamente desconoce estas clasificaciones prácticas y utiliza únicamente las estadísticas para agrupar, lo que explica por que existen algunos "intrusos" en grupos en los que, según su posición, no corresponderían. Dirk Nowitzki es por supuesto el mejor ejemplo de esta "equivocación" al encontrarse en un grupo que con coincide con su posición, pero conociendo la carrera del jugador alemán uno sabe que nunca fue un "hombre grande" tradicional; al contrario se caraterizaba por su efectivo tiro desde el exterior y zona de 3 puntos y su pobre desempeño en estadísticas tradicionales de los power forwards: rebotes y bloqueos.
+
+Los modelos k-means nos brindan resultados muy claros pues se basan en una interpretación muy directa/simple de las estadísticas. Esto claramente es deseable cuando se requiera agrupar de forma simple un gran número de elementos con una cantidad de dimensiones no trivial.
+
+El modelo jerárquico realiza un agrupamiento menos intuitivo: coloca a Shaquille O'Neal como el miembro único de su cluster, une a Allen Iverson y la primera temporada de MVP de Michael Jordan en otro cluster, luego agrupa de forma similar a los métodos k-means: aleros y bases.
