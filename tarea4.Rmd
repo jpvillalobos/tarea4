@@ -137,28 +137,28 @@ kable(wiki_Table)
 
 * ***Limpieza de los datos: limpie lo que sea necesario aplicando expresiones regulares.***
 
-> Según la vista  anterior se observa que de la tabla nba_table debe eliminarse la primera fila pues contiene el encabezado. También se decide que las columnas "lg" (el nombre de la liga) y "voting" (que es un enlace a otra página con el desglose de las votaciones por el MVP de la temporada) no serán utilizadas para hacer el clustering de la información. Serán removidas en la siguiente fase.
+> Según la vista  anterior se observa que de la tabla nba_table debe eliminarse la primera fila pues contiene el encabezado. También se decide que las columnas "Age" (la edad del jugador), "lg" (el nombre de la liga) y "voting" (que es un enlace a otra página con el desglose de las votaciones por el MVP de la temporada) no serán utilizadas para hacer el clustering de la información. De igual forma se eliminarán las columnas WS y WS/48 (win shares y win shares by 48 minutes, respectivamente) puesto que al ser "métricas avanzadas" utilizan las otras estadísticas como parte de su cálculo, es decir, introducen una dependencia linear.
 
-> Con respecto a la tabla wiki_table se observa que que deben ser removidos los cuantificadores de los nombres "(n)" de algunos nombres en la columna "Team". La columna "Player" tambien debe eliminarse porque está duplicada en la tabla nba_table
+> Con respecto a la tabla wiki_table se observa que que deben ser removidas las columnas Team y Nationality pues no son de utilidad para el análisis. La columna "Player" tambien debe eliminarse porque está duplicada en la tabla nba_table
 
 ```{r}
-# Eliminar las colmunas: "Lg", "Voting" del frame nba_Table pues no aportan datos importantes. Además se elimina la columna Tm pues se utilizará el nombre del equipo extraído de Wikipedia.
+# Eliminar las columnas: "Age", Lg", "Voting", "Tm", "WS", "WS/48" del frame nba_Table pues no aportan datos importantes al modelo. 
+nba_Table$Age <- NULL
 nba_Table$Lg <- NULL
 nba_Table$Voting <- NULL
 nba_Table$Tm <- NULL
+nba_Table$WS <- NULL
+nba_Table$"WS/48" <- NULL
 
 # Eliminar las filas que contienen encabezados como datos (busca un encabezado dentro de los datos)
 nba_Table<- nba_Table[ grep("Season", nba_Table$Season, invert = TRUE) , ]
 
 kable(nba_Table)
 
-# Eliminar las columnas: "Player" del frame wiki_Table (ya está en la otra tabla) y Nationality (no será tomada en cuenta para el análisis)
+# Eliminar las columnas: "Player" del frame wiki_Table (ya está en la otra tabla), Nationality y Team (no serán tomadas en cuenta para el análisis)
 wiki_Table$Player <- NULL
 wiki_Table$Nationality <- NULL
-
-# Limpiar los nombres de los equipos en la columna "Teams" utilizando expresiones regulares
-#   (se elimina el nombre de la ciudad y se utiliza unicamente el nombre del equipo)
-wiki_Table$Team <- str_match(wiki_Table$Team,'([a-zA-Z]+)(\\s*\\([0-9]+\\))?$')[,2]
+wiki_Table$Team <- NULL
 
 # Reemplazar caracteres invalidos para "-" en el campo "Season". (Sí, son diferentes).
 wiki_Table$Season <- str_replace(wiki_Table$Season,'\\–','\\-')
@@ -175,7 +175,7 @@ kable(wiki_Table)
 players_table <- merge(nba_Table,wiki_Table, by = "Season")
 
 # Reorganizar la posición de las columnas para facilitar la visualización
-players_table<- players_table[c(1,2,3,17,16,4,5,6,7,8,9,10,11,12,13,14,15)]
+players_table<- players_table[c(1,2,13,3,4,5,6,7,8,9,10,11,12)]
 
 kable(players_table)
 
@@ -183,14 +183,29 @@ kable(players_table)
 
 * ***Transformaciones aplicadas a los datos. Describa las transformaciones realizadas.***
 
-> Primero se aplica una transformación básica, mutar las columnas a valores numéricos. Luego se procede a eliminar las filas con valores vacíos: un total de 24 que comprenden aquellas temporadas previas a 1979-1980 cuando no se llevaba registro de estadísticas como robos, bloqueos y el tiro de 3 puntos no existía. Finalmente se normalizan las columnas numéricas para evitar que las diferencias en magnitudes perjudiquen el modelo.
+> Primero se reemplaza los nombres de las filas del dataframe por una combinación de las columnas Season, Player y Position para facilitar la lectura de los resultados. Una vez realizado este cambio esas columnas se eliminan.
+
+```{r}
+players_table$id <- paste(players_table$Player,'(',players_table$Season,')','-',players_table$Position)
+rownames(players_table) <- players_table$id
+
+players_table$id <- NULL
+players_table$Player <- NULL
+players_table$Season <- NULL
+players_table$Position <- NULL
+
+kable(players_table)
+
+```
+
+> Luego se aplica una transformación básica, mutar las columnas a valores numéricos. Luego se procede a eliminar las filas con valores vacíos: un total de 24 que comprenden aquellas temporadas previas a 1979-1980 cuando no se llevaba registro de estadísticas como robos, bloqueos y el tiro de 3 puntos no existía. Finalmente se normalizan las columnas numéricas para evitar que las diferencias en magnitudes perjudiquen el modelo.
 
 ```{r}
 
 # Transformar las columnas con valores númericos a su correspondiente tipo.
 sapply(players_table, class)
 
-numeric_columns <- c(3,6,7,8,9,10,11,12,13,14,15,16,17)
+numeric_columns <- c(1:10)
 players_table[ , numeric_columns] <- apply(players_table[ , numeric_columns], 2,  # Especifica la funcion en la llamada
                                            function(x) as.numeric(as.character(x)))
 sapply(players_table, class)
@@ -201,23 +216,12 @@ na_omitted <- na.omit(players_table)
 kable(na_omitted)
 
 # Normalizacion de los datos
-players_normal <- na_omitted %>% mutate_at(6:17, funs((. - mean(.))/sd(.)))
+# players_normal <- na_omitted %>% mutate_at(1:10, funs((. - mean(.))/sd(.)))
+players_normal <- as.data.frame(scale(na_omitted))
 kable(players_normal)
 
 ```
 
-> Por último se reemplaza los nombres de las filas del dataframe por una combinación de las columnas Season, Player y Position para facilitar la lectura de los resultados. Una vez realizado este cambio esas columnas se eliminan.
-
-```{r}
-players_normal$id <- paste(players_normal$Player,'(',players_normal$Season,')','-',players_normal$Position)
-players_ds<- players_normal[c(18,6,7,8,9,10,11,12,13,14,15,16,17)]
-kable(players_ds)
-
-rownames(players_ds) <- players_ds$id
-players_ds$id <- NULL
-kable(players_ds)
-
-```
 
 ### Fase de modelado
 
@@ -225,21 +229,21 @@ kable(players_ds)
 
 > Las técnicas a utilizar son k-means y LA OTRA
 
-#### Construcción de modelo k-means
+#### Construcción de modelo k-means (5,20)
 
 Los parámetros a utilizar son: k = 5 centroides: utilizando un poco de conocimiento previo de los datos, conscientes de que existen 5 posiciones diferentes en el baloncesto. nstart = 20 configuraciones iniciales: aprovechando el modesto tamaño del set de datos.
     
 ```{r}
 
 # ejecución del algoritmo kmeans con los parámetros elegidos
-clusters <- kmeans(players_ds,5,nstart=20)
+clusters <- kmeans(players_normal,5,nstart=20)
 
 # obtener cantidad de registros en cada cluster y los centroides
 descClusters<- data.frame(clusters$size,clusters$centers)
 kable(descClusters)
 
 # crear un data frame combinando el cluster asignado y los atributos originales
-resultado <- data.frame(clusters$cluster,players_ds)
+resultado <- data.frame(clusters$cluster,players_normal)
 names(resultado)[1] <- "cluster"
 kable(resultado[order(resultado$cluster),])
 ```  
@@ -251,32 +255,90 @@ kable(resultado[order(resultado$cluster),])
 
 # grafico modelo #1
 
-plotcluster(players_ds, clusters$cluster)
+plotcluster(players_normal, clusters$cluster)
 
 # construir un grafico
-ggplot(players_ds,
-     aes(PTS,BLK,
-         color = clusters$cluster)) + geom_point()+ ggtitle(label='Distribución por cluster')
+#ggplot(players_ds,
+#     aes(PTS,BLK,
+#         color = clusters$cluster)) + geom_point()+ ggtitle(label='Distribución por cluster')
 
 # otra forma de visualizar los clusters
-fviz_cluster(clusters,data=players_ds[,c(1,2)],palette='jco',ggtheme = theme_minimal())
-# grafico modelo #2
-```  
-* ***Evaluación de los modelos***
-    * ***Compare los resultados obtenidos con cada modelo***  
-    ```{r}
-    # evaluacion modelo #1
-    # cálculo del score Silhouette
-    score_sil<- silhouette(clusters$cluster,daisy(players_ds))
-    
-    # cálculo del valor óptimo de k usando el score silhouette
-    fviz_nbclust(players_ds,kmeans,method = 'silhouette',k.max = 10)
-    
-    # cálculo del valor óptimo de k usando el método del codo
-    fviz_nbclust(players_ds,kmeans,method = 'wss',k.max = 10)
-    
-    # cálculo del valor óptimo de k usando la estadística gap
-    fviz_nbclust(players_ds,kmeans,method = 'gap_stat',k.max = 10)
+fviz_cluster(clusters,data=players_normal[,c(1,2)],palette='jco',ggtheme = theme_minimal())
 
-    # evaluacion modelo #2
-    ```
+
+install.packages("ggplot2")
+ggparcoord(data=players_normal,columns=c(1:10))
+
+```  
+* ***Evaluación del modelo***
+    
+```{r}
+# evaluacion modelo #1
+# cálculo del score Silhouette
+score_sil<- silhouette(clusters$cluster,daisy(players_normal))
+
+# cálculo del valor óptimo de k usando el score silhouette
+fviz_nbclust(players_normal,kmeans,method = 'silhouette',k.max = 10)
+
+# cálculo del valor óptimo de k usando el método del codo
+fviz_nbclust(players_normal,kmeans,method = 'wss',k.max = 10)
+
+# cálculo del valor óptimo de k usando la estadística gap
+fviz_nbclust(players_normal,kmeans,method = 'gap_stat',k.max = 10)
+
+```
+
+#### Construcción de modelo k-means (2,20)
+
+Los parámetros a utilizar son: k = 2 centroides: siguiendo la recomendación dada por silhouette. nstart = 20 configuraciones iniciales: aprovechando el modesto tamaño del set de datos.
+    
+```{r}
+
+# ejecución del algoritmo kmeans con los parámetros elegidos
+clusters2 <- kmeans(players_normal,2,nstart=20)
+
+# obtener cantidad de registros en cada cluster y los centroides
+descClusters2<- data.frame(clusters2$size,clusters2$centers)
+kable(descClusters2)
+
+# crear un data frame combinando el cluster asignado y los atributos originales
+resultado2 <- data.frame(clusters2$cluster,players_normal)
+names(resultado2)[1] <- "cluster"
+kable(resultado2[order(resultado2$cluster),])
+```
+
+* ***Descripción del modelo obtenido (incluya al menos un gráfico por modelo)***
+
+```{r}
+# modelo obtenido
+
+# grafico modelo #2
+
+plotcluster(players_normal, clusters2$cluster)
+
+# construir un grafico
+#ggplot(players_ds,
+#     aes(PTS,BLK,
+#         color = clusters$cluster)) + geom_point()+ ggtitle(label='Distribución por cluster')
+
+# otra forma de visualizar los clusters
+fviz_cluster(clusters2,data=players_normal[,c(1,2)],palette='jco',ggtheme = theme_minimal())
+```  
+
+* ***Evaluación del modelo***
+    
+```{r}
+# evaluacion modelo #1
+# cálculo del score Silhouette
+score_sil<- silhouette(clusters2$cluster,daisy(players_normal))
+
+# cálculo del valor óptimo de k usando el score silhouette
+fviz_nbclust(players_normal,kmeans,method = 'silhouette',k.max = 10)
+
+# cálculo del valor óptimo de k usando el método del codo
+fviz_nbclust(players_normal,kmeans,method = 'wss',k.max = 10)
+
+# cálculo del valor óptimo de k usando la estadística gap
+fviz_nbclust(players_normal,kmeans,method = 'gap_stat',k.max = 10)
+
+```
