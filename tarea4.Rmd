@@ -4,12 +4,12 @@ author: "Jonathan Gonzalez, Gonzalo Rodriguez, Juan P. Villalobos"
 date: "05/17/2020"
 output:
   html_document: default
-  # pdf_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 #instalar librerias
-#options(repos="https://cran.rstudio.com" )
+options(repos="https://cran.rstudio.com" )
 
 #install.packages("evaluate")
 #install.packages("tibble")
@@ -26,13 +26,13 @@ output:
 #install.packages("foreign")
 #install.packages("GGally")
 #install.packages("kableExtra")
-install.packages("dendextend")
-install.packages("clValid")
-install.packages("NbClust")
+#install.packages("dendextend")
+#install.packages("clValid")
+#install.packages("NbClust")
 
 
 
-knitr::opts_chunk$set(echo = TRUE)
+# knitr::opts_chunk$set(echo = TRUE)
 
 # cargar librerias necesarias
 suppressWarnings(suppressMessages(library(tibble)))
@@ -247,11 +247,11 @@ kable(players_normal)
 
 ***Para esta fase se le solicita que seleccione dos de los algoritmos de clustering vistos en clase, o bien ejecutar dos veces sólo uno de los algoritmos estudiados pero usando diferentes parámetros cada vez.***
 
-> Las técnicas a utilizar son k-means y LA OTRA
+> Las técnicas a utilizar son k-means y clustering jerárquico. Haremos dos ejecuciones de k-means y una de clustering jerárquico.
 
 #### Construcción de modelo k-means (5,20)
 
-Los parámetros a utilizar son: k = 5 centroides: utilizando un poco de conocimiento previo de los datos, conscientes de que existen 5 posiciones diferentes en el baloncesto. nstart = 20 configuraciones iniciales: aprovechando el modesto tamaño del set de datos.
+Los parámetros a utilizar para la primera ejecución son: k = 5 centroides: haciendo uso de nuestro modesto conocimiento previo de los datos y conscientes de que existen 5 posiciones diferentes en el baloncesto. nstart = 20 configuraciones iniciales: aprovechando el reducido tamaño del set de datos.
     
 ```{r}
 
@@ -270,26 +270,26 @@ kable(resultado[order(resultado$cluster),])
     
 * ***Descripción del modelo obtenido (incluya al menos un gráfico por modelo)***
 
+> La ejecución del modelo nos da como resultado 4 clusters de entre 4 y 9 elementos y otro cluster de 14 elementos. 
+
+> Podemos notar que el modelo suele agrupar jugadores que juegan las mismas o similares posiciones en el mismo cluster. Esto tiene mucho sentido puesto que estos jugadores suelen tener valores similares en las mismas estadísticas: centers y power forwards acumulan muchos rebotes (TRB) y bloqueos (BLK), point guards lideran en asistencias (AST) y robos (STL), shooting guards suelen ser buenos anotadores (TP).
+
+> A continuación, el primer gráfico nos muestra la distribución de los jugadores en los distintos clusters:
+
 ```{r}
-# modelo obtenido
-
-# grafico modelo #1
-
 plotcluster(players_normal, clusters$cluster)
 
-# construir un grafico
-#ggplot(players_ds,
-#     aes(PTS,BLK,
-#         color = clusters$cluster)) + geom_point()+ ggtitle(label='Distribución por cluster')
+```
 
-# otra forma de visualizar los clusters
-fviz_cluster(clusters,data=players_normal[,c(1,2)],palette='jco',ggtheme = theme_minimal())
+> El segundo gráfico nos muestra el aporte o influencia de cada una de las dimensiones para la clasificación de los jugadores, cada línea representa a un jugador y está coloreada de acuerdo al cluster en el que fue colocado. En el eje x se pueden ver los nombres de las dimensiones con su magnitud representada en el eje y. De acuerdo a lo explicado en la descripción del modelo obtenido podemos notar como las estadisticas PTS, TRB, AST, STL y BLK son las más importantes para el modelo, mientras que FT, MP y sorprendentemente X3P (porcentaje de tiros de 3 puntos) no tienen tanta variación en sus valores y por lo tanto no son tan valiosas para el agrupamiento.
 
-ggparcoord(data=players_normal,columns=c(1:9))
+```{r}
+ggparcoord(data=resultado,columns=2:10, groupColumn=1,mapping=aes(color=as.factor(cluster)))
 
 ```  
-* ***Evaluación del modelo***
-    
+
+Cálculo de los valores óptimos de K
+
 ```{r}
 # evaluacion modelo #1
 # cálculo del score Silhouette
@@ -308,12 +308,12 @@ fviz_nbclust(players_normal,kmeans,method = 'gap_stat',k.max = 10)
 
 #### Construcción de modelo k-means (2,20)
 
-Los parámetros a utilizar son: k = 2 centroides: siguiendo la recomendación dada por silhouette. nstart = 20 configuraciones iniciales: aprovechando el modesto tamaño del set de datos.
+Los parámetros a utilizar son: k = 2 centroides, siguiendo la recomendación dada por silhouette para el primer modelo. nstart = 15 configuraciones iniciales, aprovechando el tamaño del set de datos y la reducción en la cantidad de centroides a utilizar.
     
 ```{r}
 
 # ejecución del algoritmo kmeans con los parámetros elegidos
-clusters2 <- kmeans(players_normal,2,nstart=20)
+clusters2 <- kmeans(players_normal,2,nstart=15)
 
 # obtener cantidad de registros en cada cluster y los centroides
 descClusters2<- data.frame(clusters2$size,clusters2$centers)
@@ -327,49 +327,34 @@ kable(resultado2[order(resultado2$cluster),])
 
 * ***Descripción del modelo obtenido (incluya al menos un gráfico por modelo)***
 
-```{r}
-# modelo obtenido
+> La ejecución del modelo nos da como resultado 2 clusters de 27 y de 13 elementos.
 
-# grafico modelo #2
+> A diferencia del primer modelo de k=5, éste utiliza los rebotes (TRB), asistencias (AST), robos (STL) y bloqueos (BLK) como las dimensiones más importantes para el agrupamiento. Con mucha seguridad, incluso antes de ver el dataframe "resultado2", podríamos concluir que el algoritmo está dividiendo entre bases (point guard, shooting guard, small foward) y aleros (power forward y center). También se le llama a esta diferenciación "hombres pequeños" y "hombres grandes", respectivamente.
+
+> A continuación, el primer gráfico nos muestra la distribución de los jugadores en los distintos clusters:
+
+```{r}
 
 plotcluster(players_normal, clusters2$cluster)
-
-# construir un grafico
-#ggplot(players_ds,
-#     aes(PTS,BLK,
-#         color = clusters$cluster)) + geom_point()+ ggtitle(label='Distribución por cluster')
-
-# otra forma de visualizar los clusters
-fviz_cluster(clusters2,data=players_normal[,c(1,2)],palette='jco',ggtheme = theme_minimal())
-```  
-
-* ***Evaluación del modelo***
-    
-```{r}
-# evaluacion modelo #1
-# cálculo del score Silhouette
-score_sil<- silhouette(clusters2$cluster,daisy(players_normal))
-
-# cálculo del valor óptimo de k usando el score silhouette
-fviz_nbclust(players_normal,kmeans,method = 'silhouette',k.max = 10)
-
-# cálculo del valor óptimo de k usando el método del codo
-fviz_nbclust(players_normal,kmeans,method = 'wss',k.max = 10)
-
-# cálculo del valor óptimo de k usando la estadística gap
-fviz_nbclust(players_normal,kmeans,method = 'gap_stat',k.max = 10)
-
 ```
 
+> El segundo gráfico nos muestra el aporte o influencia de cada una de las dimensiones para la clasificación de los jugadores, cada línea representa a un jugador y está coloreada de acuerdo al cluster en el que fue colocado. La única diferencia de este gráfico respecto al producido por el modelo anterior es obviamente la cantidad de colores/clusters.
+
+```{r}
+ggparcoord(data=resultado2,columns=2:10, groupColumn=1,mapping=aes(color=as.factor(cluster)))
+
+```  
+
+
 #### Construcción de modelo Jerárquico
-### Cálculo de la matriz de distancias
+
+Cálculo de la matriz de distancias
 ```{r}
 # se calculan las distancias entre los puntos
     dist_matrix<- dist(players_normal,method = 'euclidean')
 ```
 
-### Clustering Jerárquico Aglomerativo
-
+Ejecución del modelo
 ```{r}
 # se establece el criterio de linkage y se ejecuta el clustering
 
@@ -397,3 +382,5 @@ fviz_nbclust(players_normal,kmeans,method = 'gap_stat',k.max = 10)
     plot(color_dendro)
 
 ```
+
+* ***Evaluación de los modelos ***
