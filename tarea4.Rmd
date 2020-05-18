@@ -156,7 +156,7 @@ kable(wiki_Table)
 
 * ***Limpieza de los datos: limpie lo que sea necesario aplicando expresiones regulares.***
 
-> Según la vista  anterior se observa que de la tabla nba_table debe eliminarse la primera fila pues contiene el encabezado. También se decide que las columnas "Age" (la edad del jugador), "lg" (el nombre de la liga) y "voting" (que es un enlace a otra página con el desglose de las votaciones por el MVP de la temporada) no serán utilizadas para hacer el clustering de la información. De igual forma se eliminarán las columnas WS y WS/48 (win shares y win shares by 48 minutes, respectivamente) puesto que al ser "métricas avanzadas" utilizan las otras estadísticas como parte de su cálculo, es decir, introducen una dependencia linear.
+> Según la vista  anterior se observa que de la tabla nba_table debe eliminarse la primera fila pues contiene el encabezado. También se decide que las columnas "Age" (la edad del jugador), "lg" (el nombre de la liga) y "voting" (que es un enlace a otra página con el desglose de las votaciones por el MVP de la temporada) no serán utilizadas para hacer el clustering de la información. De igual forma se eliminarán las columnas WS y WS/48 (win shares y win shares by 48 minutes, respectivamente) puesto que al ser "métricas avanzadas" utilizan las otras estadísticas como parte de su cálculo, es decir, introducen una dependencia lineal.
 
 > Con respecto a la tabla wiki_table se observa que que deben ser removidas las columnas Team y Nationality pues no son de utilidad para el análisis. La columna "Player" tambien debe eliminarse porque está duplicada en la tabla nba_table
 
@@ -290,6 +290,7 @@ ggparcoord(data=resultado,columns=2:10, groupColumn=1,mapping=aes(color=as.facto
 
 Cálculo de los valores óptimos de K
 
+
 ```{r}
 # evaluacion modelo #1
 # cálculo del score Silhouette
@@ -297,14 +298,31 @@ score_sil<- silhouette(clusters$cluster,daisy(players_normal))
 
 # cálculo del valor óptimo de k usando el score silhouette
 fviz_nbclust(players_normal,kmeans,method = 'silhouette',k.max = 10)
+```
 
+> El método "Average silhouette" determina el número óptimo de clusters k=2, donde se maximiza el valor de la silueta con respecto a un rango de valores k.
+
+```{r}
 # cálculo del valor óptimo de k usando el método del codo
 fviz_nbclust(players_normal,kmeans,method = 'wss',k.max = 10)
+```
 
+> Evaluando la curva de la suma de cuadrados, podemos apreciar que en 2, 3, y 5 se encuentra levemente la figura que busca el método del "codo", aunque es subjetivo, en el punto donde se dobla la linea es considerado como un buen indicar para estimar el número apropiado de clusters.
+
+
+```{r}
 # cálculo del valor óptimo de k usando la estadística gap
 fviz_nbclust(players_normal,kmeans,method = 'gap_stat',k.max = 10)
 
 ```
+
+> "Statistic gap" compara el total de variación intra-cluster, para diferentes valores de k, el valor óptimo que maximiza el espacio estadístico, esto significa que la estructura del cluster esta lejos de una distribución uniforme de puntos aleatorios.
+
+
+```{r}
+NbClust(data = players_normal, diss = NULL, distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans")
+```
+
 
 #### Construcción de modelo k-means (2,20)
 
