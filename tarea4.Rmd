@@ -30,7 +30,7 @@ options(repos="https://cran.rstudio.com" )
 #install.packages("clValid")
 #install.packages("NbClust")
 #install.packages("ggdendro")
-
+#install.packages("ape")
 
 # knitr::opts_chunk$set(echo = TRUE)
 
@@ -53,6 +53,8 @@ suppressWarnings(suppressMessages(library(dendextend)))
 suppressWarnings(suppressMessages(library(clValid)))
 suppressWarnings(suppressMessages(library(NbClust)))
 suppressWarnings(suppressMessages(library(ggdendro)))
+suppressWarnings(suppressMessages(library(ape)))
+
 
 ```
 # Web Mining y Clustering
@@ -206,6 +208,18 @@ kable(players_table)
 * ***Transformaciones aplicadas a los datos. Describa las transformaciones realizadas.***
 
 > Primero se reemplaza los nombres de las filas del dataframe por una combinación de las columnas Season, Player y Position para facilitar la lectura de los resultados. Una vez realizado este cambio esas columnas se eliminan.
+
+>Expresiones regulares.
+ Los datos seleccionados tienen una alta calidad y al ser tabulares, no ha sido necesario aplicar expresiones para extraer o depurar los datos.
+ Como parte del ejercicio academico, se realiza la siguiente expresion regular que extrae el nombre del equipo y lo separa de la ciudad.
+
+>Eg.
+ #limpiar los nombres de los equipos en la columna "Teams" utilizando expresiones regulares,
+ #se elimina el nombre de la ciudad y se utiliza unicamente el nombre del equipo
+ 
+ ```#wiki_Table\$Team <- str_match(wiki_Table\$Team,'([a-zA-Z]+)(\\s*\\([0-9]+\\))?\$')[,2]```
+
+>No se incluye en los resultados de la tarea, porque la columan "team" del equipo, resulto ser irrelevante para el clustering.
 
 ```{r}
 players_table$id <- paste(players_table$Player,'(',players_table$Season,')','-',players_table$Position)
@@ -405,18 +419,26 @@ plot(clustJer_conWard)
 
 
 ```{r fig.align='center', fig.height=8}
-dendrograma<-as.dendrogram(clustJer_conWard)
-color_dendro<- color_branches(dendrograma,k=5)
-plot(color_dendro, cex=0.6)
+#dendrograma<-as.dendrogram(clustJer_conWard)
+#color_dendro<- color_branches(dendrograma,k=5)
+#plot(color_dendro, cex=0.6)
 
 ggdendrogram(clustJer_conWard, rotate = TRUE, theme_dendro = FALSE)
 
 # Horizontal plot
 # Build dendrogram object from hclust results
-dend <- as.dendrogram(clustJer_conWard)
-dend %>% set("branches_k_color", k = 5) %>% plot(horiz = TRUE)
-dend %>% rect.dendrogram(k = 5, horiz = TRUE, border = 8, lty = 5, lwd = 2)
+#dend <- as.dendrogram(clustJer_conWard)
+#dend %>% set("branches_k_color", k = 5) %>% plot(horiz = TRUE)
+#dend %>% rect.dendrogram(k = 5, horiz = TRUE, border = 8, lty = 5, lwd = 2)
 
+```
+
+
+```{r fig.align='center', fig.height=11}
+
+colors = c("red", "blue", "green", "black", "brown")
+clus5 = cutree(clustJer_conWard, 5)
+plot(as.phylo(clustJer_conWard), type = "fan", tip.color = colors[clus5], label.offset = 1, cex = 0.7)
 ```
 
 ##### DIvisive clustering
@@ -426,7 +448,7 @@ Existe una version "top-down" que inicia en la raíz llamado "divisive clusterin
 ```{r fig.align='center', fig.height=8}
 # DIvisive ANAlysis Clustering
 res.diana <- diana(x = players_normal, # data matrix
-                   stand = TRUE, # standardize the data
+                   stand = FALSE, # standardize the data
                    metric = "ward.D2" # metric for distance matrix
                    )
 #fviz_dend(res.diana, cex = 0.5)
@@ -434,8 +456,9 @@ res.diana <- diana(x = players_normal, # data matrix
 dendrograma <- as.dendrogram(res.diana)
 color_dendro<- color_branches(dendrograma,k=5)
 plot(color_dendro)
-```
 
+#ggdendrogram(res.diana, rotate = TRUE, theme_dendro = FALSE)
+```
 
 * ***Evaluación de los modelos ***
 
@@ -443,4 +466,4 @@ Los modelos obtenidos utilizando k-means arrojan resultados muy similares a los 
 
 Los modelos k-means nos brindan resultados muy claros pues se basan en una interpretación muy directa/simple de las estadísticas. Esto claramente es deseable cuando se requiera agrupar de forma simple un gran número de elementos con una cantidad de dimensiones no trivial.
 
-El modelo jerárquico realiza un agrupamiento menos intuitivo: coloca a Shaquille O'Neal como el miembro único de su cluster, une a Allen Iverson y la primera temporada de MVP de Michael Jordan en otro cluster, luego agrupa de forma similar a los métodos k-means: aleros y bases.
+El modelo jerárquico inicialmente presentó falta de precisión agrupando con el método de promedio, sin embargo el método WARD.D presenta muy buenos resultados, es evidente como la diferencia estadística entre el mismo jugador durante diferentes temporadas, tienden a agruparse, como reflejo de la consistencia de sus habilidades.
