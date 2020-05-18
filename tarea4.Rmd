@@ -29,7 +29,7 @@ options(repos="https://cran.rstudio.com" )
 #install.packages("dendextend")
 #install.packages("clValid")
 #install.packages("NbClust")
-
+#install.packages("ggdendro")
 
 
 # knitr::opts_chunk$set(echo = TRUE)
@@ -52,6 +52,8 @@ suppressWarnings(suppressMessages(library(kableExtra)))
 suppressWarnings(suppressMessages(library(dendextend)))
 suppressWarnings(suppressMessages(library(clValid)))
 suppressWarnings(suppressMessages(library(NbClust)))
+suppressWarnings(suppressMessages(library(ggdendro)))
+
 ```
 # Web Mining y Clustering
 ___
@@ -307,7 +309,10 @@ fviz_nbclust(players_normal,kmeans,method = 'silhouette',k.max = 10)
 fviz_nbclust(players_normal,kmeans,method = 'wss',k.max = 10)
 ```
 
+
+
 > Evaluando la curva de la suma de cuadrados, podemos apreciar que en 2, 3, y 5 se encuentra levemente la figura que busca el método del "codo", aunque es subjetivo, en el punto donde se dobla la linea es considerado como un buen indicar para estimar el número apropiado de clusters.
+
 
 
 ```{r}
@@ -382,7 +387,7 @@ De esta forma el algoritmo funciona como "bottom-up", inicia en las hojas, donde
 * Ejecución del modelo (usando el método "average")
 ```{r}
 # se establece el criterio de linkage y se ejecuta el clustering
-clustJer_conAvg<- hclust(dist_matrix,method = 'ward.D')
+clustJer_conWard<- hclust(dist_matrix,method = 'ward.D')
 
 ```
 
@@ -393,23 +398,32 @@ clustJer_conAvg<- hclust(dist_matrix,method = 'ward.D')
 ```{r fig.align='center', fig.height=8}
 
 # dendrograma del clustering  usando average
-plot(clustJer_conAvg)
+plot(clustJer_conWard)
 ```
 
 > Debido a la naturaleza del algorimo, es esperado que un jugador que sea nominado múltiples años, inicie formando un cluster consigo mismo, en otra temporada, siempre y cuando sus estadisticas sean consistentes.  De hecho se puede apreciar este efecto en jugadores como LeBron llegando a formar 2 niveles, combinandose el mismo en dos ocasiones. Es muy comun ese patrón en el primer nivel.
 
 
-```{r fig.align='center'}
-dendrograma<-as.dendrogram(clustJer_conAvg)
+```{r fig.align='center', fig.height=8}
+dendrograma<-as.dendrogram(clustJer_conWard)
 color_dendro<- color_branches(dendrograma,k=5)
-plot(color_dendro)
+plot(color_dendro, cex=0.6)
+
+ggdendrogram(clustJer_conWard, rotate = TRUE, theme_dendro = FALSE)
+
+# Horizontal plot
+# Build dendrogram object from hclust results
+dend <- as.dendrogram(clustJer_conWard)
+dend %>% set("branches_k_color", k = 5) %>% plot(horiz = TRUE)
+dend %>% rect.dendrogram(k = 5, horiz = TRUE, border = 8, lty = 5, lwd = 2)
+
 ```
 
 ##### DIvisive clustering
 
 Existe una version "top-down" que inicia en la raíz llamado "divisive clustering", donde el cluster más heterogeneo es dividido en dos, y el proceso continua hasta obtener las hojas.
 
-```{r fig.align='center'}
+```{r fig.align='center', fig.height=8}
 # DIvisive ANAlysis Clustering
 res.diana <- diana(x = players_normal, # data matrix
                    stand = TRUE, # standardize the data
