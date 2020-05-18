@@ -366,20 +366,29 @@ ggparcoord(data=resultado2,columns=2:10, groupColumn=1,mapping=aes(color=as.fact
 
 #### Construcción de modelo Jerárquico
 
-Cálculo de la matriz de distancias euclidianas.
+Reconocido como uno de los modelos más utilizados en agrupaciones de objectos, con base en su similitud.  Tambien es conocido como AGNES (Agglomerative Nesting).  El algoritmo inicia tratando cada objecto como un cluster único. Luego, crea parejas de clusters que son combinadas, hasta que todos se hayan constituido en un gran cluster conteniendo todos los objetos.  El resultado es una representación tipo árbol de todos los elementos, llamado dendrogram.
+
+De esta forma el algoritmo funciona como "bottom-up", inicia en las hojas, donde cada elemento es un cluster por si mismo y continua haciendo agregaciones.  En cada paso, los dos clusters con mayor similitud son combinados en un cluster de mayor altura en la jerarquía.  El proceso se repite hasta que se obtiene un único cluster raíz.
+
+* Cálculo de la matriz de distancias euclidianas.
 ```{r}
 # se calculan las distancias entre los puntos
     dist_matrix<- dist(players_normal,method = 'euclidean')
+    as.matrix(dist_matrix)[1:10, 1:10]
 ```
 
-Ejecución del modelo (usando el método "average")
+> Para poder decidir cuales objectos o clusters deben ser combinados o divididos, necesitamos mecanismos para medir la similitud entre objectos.  En este caso utilizaremos la distancia euclideana, como una alternativa podríamos utilizar la distancia manhattan.  En R, se puede utilizar la funcion dist() para computar la distancia entre cada par de objetos en el conjunto de datos.  Los resultados de este procesamiento es conocido como matriz de disimilitudes.  e.g.: dist_matrix
+
+* Ejecución del modelo (usando el método "average")
 ```{r}
 # se establece el criterio de linkage y se ejecuta el clustering
-clustJer_conAvg<- hclust(dist_matrix,method = 'average')
+clustJer_conAvg<- hclust(dist_matrix,method = 'ward.D')
 
 ```
 
-### Visualización del cluster
+> La funcion de enlace toma la informacion de la distancia, retornada por la funcion dist(), y agrupa pares de objetos dentro de clusters con base en su similitud.  Algunas variantes para el método disponibles en la función hclust son: “ward.D”, “ward.D2”, “single”, “complete”, “average”, “mcquitty”, “median” o “centroid”.
+
+##### Visualización del cluster
 
 ```{r fig.align='center', fig.height=8}
 
@@ -387,13 +396,32 @@ clustJer_conAvg<- hclust(dist_matrix,method = 'average')
 plot(clustJer_conAvg)
 ```
 
+> Debido a la naturaleza del algorimo, es esperado que un jugador que sea nominado múltiples años, inicie formando un cluster consigo mismo, en otra temporada, siempre y cuando sus estadisticas sean consistentes.  De hecho se puede apreciar este efecto en jugadores como LeBron llegando a formar 2 niveles, combinandose el mismo en dos ocasiones. Es muy comun ese patrón en el primer nivel.
 
 
 ```{r fig.align='center'}
 dendrograma<-as.dendrogram(clustJer_conAvg)
-color_dendro<- color_branches(dendrograma,k=4)
+color_dendro<- color_branches(dendrograma,k=5)
 plot(color_dendro)
 ```
+
+##### DIvisive clustering
+
+Existe una version "top-down" que inicia en la raíz llamado "divisive clustering", donde el cluster más heterogeneo es dividido en dos, y el proceso continua hasta obtener las hojas.
+
+```{r fig.align='center'}
+# DIvisive ANAlysis Clustering
+res.diana <- diana(x = players_normal, # data matrix
+                   stand = TRUE, # standardize the data
+                   metric = "ward.D2" # metric for distance matrix
+                   )
+#fviz_dend(res.diana, cex = 0.5)
+#plot(res.diana)
+dendrograma <- as.dendrogram(res.diana)
+color_dendro<- color_branches(dendrograma,k=5)
+plot(color_dendro)
+```
+
 
 * ***Evaluación de los modelos ***
 
